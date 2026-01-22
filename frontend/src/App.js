@@ -92,6 +92,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/nutrition"
+            element={
+              <ProtectedRoute>
+                <Nutrition />
+              </ProtectedRoute>
+            }
+          />
           
           {/* Default Redirect */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
