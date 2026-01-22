@@ -669,9 +669,14 @@ const Caregivers = () => {
                   </div>
                 )}
               </>
-            ) : (
+            ) : patientLoading ? (
               <div className="flex items-center justify-center h-48">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+              </div>
+            ) : (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
+                <AlertCircle className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
+                <p className="text-yellow-800">Unable to load patient data. Please try again.</p>
               </div>
             )}
           </div>
