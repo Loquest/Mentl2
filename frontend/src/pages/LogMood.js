@@ -115,9 +115,12 @@ const LogMood = () => {
 
       await api.post('/mood-logs', logData);
       setSuccess(true);
+      setShowSuggestions(true);
+      
+      // Scroll to suggestions after a brief delay
       setTimeout(() => {
-        navigate('/dashboard');
-      }, 1500);
+        document.getElementById('suggestions-section')?.scrollIntoView({ behavior: 'smooth' });
+      }, 500);
     } catch (err) {
       if (err.response?.status === 400 && err.response?.data?.detail?.includes('already exists')) {
         setError('You already logged your mood for this date. Redirecting to dashboard...');
