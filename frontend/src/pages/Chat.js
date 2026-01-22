@@ -171,7 +171,7 @@ const Chat = () => {
             <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-red-800">
               <p className="font-semibold mb-1">Crisis Resources Available 24/7</p>
-              <p>If you're in crisis: <strong>Call 988</strong> (Suicide & Crisis Lifeline) or text <strong>HOME to 741741</strong></p>
+              <p>If you&apos;re in crisis: <strong>Call 988</strong> (Suicide & Crisis Lifeline) or text <strong>HOME to 741741</strong></p>
             </div>
           </div>
         </div>
