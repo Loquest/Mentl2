@@ -89,9 +89,21 @@ const Layout = ({ children }) => {
             </div>
             <span className="ml-2 text-lg font-bold text-gray-900">MindCare</span>
           </div>
-          <button onClick={handleLogout} className="text-gray-600 hover:text-red-600">
-            <LogOut className="h-5 w-5" />
-          </button>
+          <div className="flex items-center space-x-3">
+            <Link
+              to="/settings"
+              className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition"
+              data-testid="mobile-profile-button"
+            >
+              <User className="h-5 w-5" />
+            </Link>
+            <button 
+              onClick={handleLogout} 
+              className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+            >
+              <LogOut className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </div>
 
