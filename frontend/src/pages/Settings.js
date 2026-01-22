@@ -8,6 +8,7 @@ const CONDITION_OPTIONS = [
   { id: 'bipolar', label: 'Bipolar Disorder', description: 'Manage mood episodes and track patterns', icon: '🔄' },
   { id: 'adhd', label: 'ADHD', description: 'Focus and organization support', icon: '⚡' },
   { id: 'depression', label: 'Depression', description: 'Mood tracking and coping strategies', icon: '🌧️' },
+  { id: 'ocd', label: 'OCD (Obsessive-Compulsive Disorder)', description: 'Manage intrusive thoughts and compulsive behaviors', icon: '🔁' },
 ];
 
 const Settings = () => {
