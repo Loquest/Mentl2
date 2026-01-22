@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { Sparkles, Activity, Heart, Users, Palette, Loader2, RefreshCw } from 'lucide-react';
 
