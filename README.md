@@ -120,8 +120,8 @@ sudo supervisorctl restart frontend
 ```
 
 ### Access the Application
-- **Frontend**: https://requirements-site.preview.emergentagent.com
-- **Backend API**: https://requirements-site.preview.emergentagent.com/api
+- **Frontend**: https://moodally-8.preview.emergentagent.com
+- **Backend API**: https://moodally-8.preview.emergentagent.com/api
 
 ## 🔑 API Endpoints
 
@@ -271,7 +271,7 @@ EMERGENT_LLM_KEY=sk-emergent-910Dd9b5555C8F7D20
 
 ### Frontend (.env)
 ```env
-REACT_APP_BACKEND_URL=https://requirements-site.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://moodally-8.preview.emergentagent.com
 WDS_SOCKET_PORT=443
 ENABLE_HEALTH_CHECK=false
 ```

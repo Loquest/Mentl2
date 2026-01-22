@@ -226,8 +226,8 @@ All core features tested and operational:
 This application is ready for deployment via Emergent's native deployment feature.
 
 ### Access Information
-- **Frontend URL:** https://requirements-site.preview.emergentagent.com
-- **Backend API:** https://requirements-site.preview.emergentagent.com/api
+- **Frontend URL:** https://moodally-8.preview.emergentagent.com
+- **Backend API:** https://moodally-8.preview.emergentagent.com/api
 - **Test Account:** test@example.com / test123
 
 ---
