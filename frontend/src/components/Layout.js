@@ -115,6 +115,13 @@ const Layout = ({ children }) => {
           </div>
           <div className="flex items-center space-x-3">
             <Link
+              to="/caregivers"
+              className="p-2 text-gray-600 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition"
+              data-testid="mobile-caregivers-button"
+            >
+              <Users className="h-5 w-5" />
+            </Link>
+            <Link
               to="/settings"
               className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition"
               data-testid="mobile-profile-button"
