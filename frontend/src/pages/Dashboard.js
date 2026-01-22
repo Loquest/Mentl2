@@ -210,6 +210,11 @@ const Dashboard = () => {
               <ActivitySuggestions />
             </div>
 
+            {/* Dietary Suggestions */}
+            <div className="mt-6">
+              <DietarySuggestions compact={true} />
+            </div>
+
             {/* Mood Trend */}
             {analytics && (
               <div className="bg-white rounded-xl shadow-md p-6 mt-6" data-testid="mood-trend-card">
