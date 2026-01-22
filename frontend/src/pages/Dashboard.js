@@ -75,7 +75,7 @@ const Dashboard = () => {
       <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" data-testid="dashboard">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user?.name}! 👋</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user?.name}!</h1>
           <p className="mt-2 text-gray-600">How are you feeling today?</p>
         </div>
 
@@ -176,7 +176,7 @@ const Dashboard = () => {
               ) : (
                 <div className="text-center py-8">
                   <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-600 mb-4">You haven't logged your mood today</p>
+                  <p className="text-gray-600 mb-4">You haven&apos;t logged your mood today</p>
                   <Link
                     to="/log-mood"
                     className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transition"
