@@ -309,6 +309,21 @@ const LogMood = () => {
             {loading ? 'Saving...' : 'Save Mood Log'}
           </button>
         </form>
+
+        {/* Activity Suggestions - Show after successful log */}
+        {showSuggestions && (
+          <div id="suggestions-section" className="mt-8">
+            <ActivitySuggestions showTitle={true} compact={false} />
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="px-8 py-3 bg-white border-2 border-purple-500 text-purple-600 rounded-lg font-semibold hover:bg-purple-50 transition"
+              >
+                Back to Dashboard
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
