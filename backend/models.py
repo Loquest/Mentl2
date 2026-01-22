@@ -9,6 +9,9 @@ class UserCreate(BaseModel):
     password: str
     name: str
     conditions: List[str] = []  # ["bipolar", "adhd", "depression"]
+    age: Optional[int] = None
+    weight: Optional[float] = None  # in kg
+    height: Optional[float] = None  # in cm
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -21,12 +24,18 @@ class User(BaseModel):
     email: str
     name: str
     conditions: List[str] = []
+    age: Optional[int] = None
+    weight: Optional[float] = None  # in kg
+    height: Optional[float] = None  # in cm
     preferences: Dict[str, Any] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
     conditions: Optional[List[str]] = None
+    age: Optional[int] = Field(None, ge=1, le=120)
+    weight: Optional[float] = Field(None, gt=0, le=500)  # kg
+    height: Optional[float] = Field(None, gt=0, le=300)  # cm
     preferences: Optional[Dict[str, Any]] = None
 
 # Mood Log Models
