@@ -218,6 +218,134 @@ async def get_mood_logs(
     return [MoodLog(**log) for log in logs]
 
 
+@api_router.post("/activities/details")
+async def get_activity_details(
+    activity: dict,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get detailed AI-generated instructions for a specific activity"""
+    try:
+        # Get user info for personalization
+        user_doc = await users_collection.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+        if not user_doc:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        activity_name = activity.get('activity', 'Unknown Activity')
+        activity_category = activity.get('category', 'general')
+        activity_description = activity.get('description', '')
+        
+        # Build personalized prompt
+        conditions_str = ', '.join(user_doc.get('conditions', ['general']))
+        
+        detail_prompt = f"""Generate comprehensive, beginner-friendly instructions for this mental health activity:
+
+ACTIVITY: {activity_name}
+DESCRIPTION: {activity_description}
+CATEGORY: {activity_category}
+USER CONDITIONS: {conditions_str}
+
+Please provide:
+1. **Why This Helps**: Brief explanation of mental health benefits (2-3 sentences)
+2. **What You'll Need**: Any materials or preparation (if applicable)
+3. **Step-by-Step Instructions**: Clear, numbered steps (5-8 steps)
+4. **Tips for Success**: 3-4 helpful tips specific to {conditions_str}
+5. **Variations**: 2-3 ways to adapt this activity
+6. **When to Do This**: Best times or situations for this activity
+
+Make it warm, encouraging, and practical. Consider challenges people with {conditions_str} might face and address them supportively.
+
+Format as JSON:
+{{
+  "why_this_helps": "explanation here",
+  "materials_needed": ["item 1", "item 2"] or [],
+  "steps": [
+    {{"number": 1, "instruction": "First step", "tip": "Optional tip"}},
+    {{"number": 2, "instruction": "Second step", "tip": "Optional tip"}}
+  ],
+  "success_tips": ["tip 1", "tip 2", "tip 3"],
+  "variations": [
+    {{"name": "Variation name", "description": "How to do it differently"}},
+  ],
+  "best_times": ["Morning", "When feeling anxious", "etc"]
+}}
+
+Provide ONLY valid JSON, no markdown."""
+
+        # Call AI
+        api_key = os.getenv("EMERGENT_LLM_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"activity_details_{user_id}",
+            system_message="You are a mental health activity guide. Provide clear, practical, and encouraging instructions in valid JSON format only."
+        ).with_model("openai", "gpt-5.2")
+        
+        from emergentintegrations.llm.chat import UserMessage
+        user_message = UserMessage(text=detail_prompt)
+        ai_response = await chat.send_message(user_message)
+        
+        # Parse AI response as JSON
+        import json
+        import re
+        
+        # Try to extract JSON from response
+        json_match = re.search(r'\{.*\}', ai_response, re.DOTALL)
+        if json_match:
+            details_json = json_match.group(0)
+        else:
+            details_json = ai_response
+        
+        details = json.loads(details_json)
+        
+        return {
+            "activity": activity_name,
+            "category": activity_category,
+            "description": activity_description,
+            "details": details,
+            "generated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse activity details: {ai_response[:200]}")
+        # Fallback response
+        return {
+            "activity": activity.get('activity', 'Activity'),
+            "category": activity.get('category', 'general'),
+            "description": activity.get('description', ''),
+            "details": {
+                "why_this_helps": "This activity can help improve your mood and mental wellbeing through engagement and mindfulness.",
+                "materials_needed": [],
+                "steps": [
+                    {"number": 1, "instruction": "Find a comfortable, quiet space", "tip": "Choose somewhere you feel safe and relaxed"},
+                    {"number": 2, "instruction": "Take a few deep breaths to center yourself", "tip": "Breathe in for 4 counts, hold for 4, exhale for 4"},
+                    {"number": 3, "instruction": "Begin the activity at your own pace", "tip": "There's no rush - take your time"},
+                    {"number": 4, "instruction": "Notice how you feel during the activity", "tip": "Check in with your emotions without judgment"},
+                    {"number": 5, "instruction": "Complete the activity or pause when needed", "tip": "It's okay to take breaks or stop if you need to"}
+                ],
+                "success_tips": [
+                    "Start small - even 5 minutes counts",
+                    "Be patient with yourself",
+                    "Focus on the process, not perfection"
+                ],
+                "variations": [
+                    {"name": "Quick Version", "description": "Shorten the activity to just 3-5 minutes"},
+                    {"name": "With Music", "description": "Add calming background music"}
+                ],
+                "best_times": ["When you have a few quiet moments", "As part of your daily routine"]
+            },
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "fallback": True
+        }
+    except Exception as e:
+        logger.error(f"Error generating activity details: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to generate activity details"
+        )
+
+
 @api_router.get("/mood-logs/suggestions")
 async def get_mood_suggestions(user_id: str = Depends(get_current_user_id)):
     """Get AI-powered activity suggestions based on recent mood logs"""
