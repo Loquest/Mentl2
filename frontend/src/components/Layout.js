@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Heart, Home, PenLine, BarChart3, MessageCircle, BookOpen, Settings, LogOut, User } from 'lucide-react';
+import { Heart, Home, PenLine, BarChart3, MessageCircle, BookOpen, Settings, LogOut, User, Users } from 'lucide-react';
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -19,6 +19,7 @@ const Layout = ({ children }) => {
     { name: 'Insights', path: '/insights', icon: BarChart3 },
     { name: 'AI Chat', path: '/chat', icon: MessageCircle },
     { name: 'Library', path: '/library', icon: BookOpen },
+    { name: 'Caregivers', path: '/caregivers', icon: Users },
   ];
 
   return (
