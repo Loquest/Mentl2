@@ -74,6 +74,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/activity-detail"
+            element={
+              <ProtectedRoute>
+                <ActivityDetail />
+              </ProtectedRoute>
+            }
+          />
           
           {/* Default Redirect */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
