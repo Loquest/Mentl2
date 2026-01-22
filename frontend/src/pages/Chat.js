@@ -130,6 +130,41 @@ const Chat = () => {
           )}
         </div>
 
+        {/* Active Crisis Alert */}
+        {crisisAlert && (
+          <div className={`mb-4 p-4 rounded-lg border-2 ${
+            crisisAlert === 'critical' 
+              ? 'bg-red-100 border-red-500' 
+              : crisisAlert === 'high'
+              ? 'bg-orange-100 border-orange-500'
+              : 'bg-yellow-100 border-yellow-500'
+          }`} data-testid="active-crisis-alert">
+            <div className="flex items-center">
+              <AlertTriangle className={`h-6 w-6 mr-3 ${
+                crisisAlert === 'critical' ? 'text-red-600' : 
+                crisisAlert === 'high' ? 'text-orange-600' : 'text-yellow-600'
+              }`} />
+              <div className="flex-1">
+                <p className={`font-bold ${
+                  crisisAlert === 'critical' ? 'text-red-800' : 
+                  crisisAlert === 'high' ? 'text-orange-800' : 'text-yellow-800'
+                }`}>
+                  {crisisAlert === 'critical' ? 'Crisis Support Activated' : 
+                   crisisAlert === 'high' ? 'We\'re Here For You' : 'Support Available'}
+                </p>
+                <p className="text-sm text-gray-700">Your caregivers have been notified and will reach out soon.</p>
+              </div>
+              <a 
+                href="tel:988" 
+                className="flex items-center px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow transition"
+              >
+                <Phone className="h-4 w-4 mr-2 text-green-600" />
+                <span className="font-semibold text-gray-900">Call 988</span>
+              </a>
+            </div>
+          </div>
+        )}
+
         {/* Crisis Warning */}
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4" data-testid="crisis-warning">
           <div className="flex items-start space-x-3">
