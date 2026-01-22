@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
 import ActivitySuggestions from '../components/ActivitySuggestions';
+import DietarySuggestions from '../components/DietarySuggestions';
 import api from '../utils/api';
 import { PenLine, MessageCircle, TrendingUp, BookOpen, Smile, Meh, Frown, Calendar, Users, UserPlus, Heart, Bell, ChevronRight } from 'lucide-react';
 
