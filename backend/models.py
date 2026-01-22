@@ -90,6 +90,8 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    crisis_detected: bool = False
+    crisis_level: Optional[str] = None  # "critical", "high", "moderate"
 
 class ChatHistory(BaseModel):
     model_config = ConfigDict(extra="ignore")
