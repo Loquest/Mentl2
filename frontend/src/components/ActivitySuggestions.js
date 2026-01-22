@@ -20,6 +20,7 @@ const CATEGORY_COLORS = {
 };
 
 const ActivitySuggestions = ({ showTitle = true, compact = false }) => {
+  const navigate = useNavigate();
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -46,6 +47,10 @@ const ActivitySuggestions = ({ showTitle = true, compact = false }) => {
 
   const handleRefresh = () => {
     fetchSuggestions();
+  };
+
+  const handleActivityClick = (suggestion) => {
+    navigate('/activity-detail', { state: { activity: suggestion } });
   };
 
   if (loading) {
