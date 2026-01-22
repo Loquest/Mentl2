@@ -14,6 +14,16 @@ const SYMPTOMS_BIPOLAR = [
   { id: 'irritability', label: 'Irritability' },
   { id: 'impulsivity', label: 'Impulsivity' },
   { id: 'racing_thoughts', label: 'Racing thoughts' },
+  { id: 'decreased_need_sleep', label: 'Decreased need for sleep' },
+  { id: 'increased_energy', label: 'Increased energy' },
+  { id: 'grandiosity', label: 'Grandiose thinking' },
+  { id: 'rapid_speech', label: 'Rapid or pressured speech' },
+  { id: 'risky_behavior', label: 'Engaging in risky behaviors' },
+  { id: 'difficulty_concentrating', label: 'Difficulty concentrating' },
+  { id: 'mood_swings', label: 'Extreme mood swings' },
+  { id: 'withdrawal', label: 'Social withdrawal' },
+  { id: 'paranoia', label: 'Paranoid thoughts' },
+  { id: 'excessive_spending', label: 'Excessive spending or shopping' },
 ];
 
 const SYMPTOMS_ADHD = [
@@ -21,6 +31,16 @@ const SYMPTOMS_ADHD = [
   { id: 'restlessness', label: 'Restlessness' },
   { id: 'forgetfulness', label: 'Forgetfulness' },
   { id: 'task_completion', label: 'Struggled with tasks' },
+  { id: 'impulsive_decisions', label: 'Impulsive decisions' },
+  { id: 'time_blindness', label: 'Lost track of time' },
+  { id: 'disorganization', label: 'Disorganization' },
+  { id: 'hyperfocus', label: 'Hyperfocus episodes' },
+  { id: 'interrupting', label: 'Interrupting others' },
+  { id: 'fidgeting', label: 'Fidgeting or squirming' },
+  { id: 'procrastination', label: 'Procrastination' },
+  { id: 'emotional_dysregulation', label: 'Emotional outbursts' },
+  { id: 'sensory_overload', label: 'Sensory overload' },
+  { id: 'rejection_sensitivity', label: 'Rejection sensitivity' },
 ];
 
 const SYMPTOMS_DEPRESSION = [
@@ -28,6 +48,16 @@ const SYMPTOMS_DEPRESSION = [
   { id: 'hopelessness', label: 'Feeling hopeless' },
   { id: 'loss_of_interest', label: 'Loss of interest' },
   { id: 'difficulty_concentrating', label: 'Difficulty concentrating' },
+  { id: 'changes_appetite', label: 'Changes in appetite' },
+  { id: 'sleep_problems', label: 'Sleep problems' },
+  { id: 'worthlessness', label: 'Feelings of worthlessness' },
+  { id: 'guilt', label: 'Excessive guilt' },
+  { id: 'fatigue', label: 'Persistent fatigue' },
+  { id: 'physical_aches', label: 'Physical aches and pains' },
+  { id: 'suicidal_thoughts', label: 'Thoughts of death or suicide' },
+  { id: 'crying_spells', label: 'Crying spells' },
+  { id: 'irritability', label: 'Irritability or frustration' },
+  { id: 'social_isolation', label: 'Social isolation' },
 ];
 
 const SYMPTOMS_OCD = [
@@ -35,6 +65,16 @@ const SYMPTOMS_OCD = [
   { id: 'compulsive_behaviors', label: 'Compulsive behaviors' },
   { id: 'excessive_checking', label: 'Excessive checking' },
   { id: 'need_for_symmetry', label: 'Need for symmetry/order' },
+  { id: 'contamination_fears', label: 'Contamination fears' },
+  { id: 'excessive_cleaning', label: 'Excessive cleaning/washing' },
+  { id: 'mental_rituals', label: 'Mental rituals or counting' },
+  { id: 'hoarding_urges', label: 'Hoarding urges' },
+  { id: 'reassurance_seeking', label: 'Seeking reassurance' },
+  { id: 'avoidance_behaviors', label: 'Avoidance of triggers' },
+  { id: 'doubt_uncertainty', label: 'Persistent doubt or uncertainty' },
+  { id: 'aggressive_thoughts', label: 'Unwanted aggressive thoughts' },
+  { id: 'religious_obsessions', label: 'Religious or moral obsessions' },
+  { id: 'perfectionism', label: 'Extreme perfectionism' },
 ];
 
 const LogMood = () => {
