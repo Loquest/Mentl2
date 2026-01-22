@@ -186,7 +186,7 @@ const Chat = () => {
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Start a Conversation</h2>
                 <p className="text-gray-600 max-w-md">
-                  I'm here to provide support, answer questions about mental health, and help you with coping strategies.
+                  I&apos;m here to provide support, answer questions about mental health, and help you with coping strategies.
                 </p>
                 <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg">
                   <button
