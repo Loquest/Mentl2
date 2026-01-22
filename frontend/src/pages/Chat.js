@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from '../components/Layout';
 import api from '../utils/api';
-import { Send, Bot, User, AlertCircle, Trash2 } from 'lucide-react';
+import { Send, Bot, User, AlertCircle, Trash2, AlertTriangle, Phone } from 'lucide-react';
 
 const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [crisisAlert, setCrisisAlert] = useState(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -46,6 +47,7 @@ const Chat = () => {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setLoading(true);
+    setCrisisAlert(null);
 
     try {
       const response = await api.post('/chat', { message: input.trim() });
@@ -53,10 +55,17 @@ const Chat = () => {
       const aiMessage = {
         role: 'assistant',
         content: response.data.response,
-        timestamp: response.data.timestamp
+        timestamp: response.data.timestamp,
+        crisis_detected: response.data.crisis_detected,
+        crisis_level: response.data.crisis_level
       };
 
       setMessages(prev => [...prev, aiMessage]);
+      
+      // Show crisis alert if detected
+      if (response.data.crisis_detected) {
+        setCrisisAlert(response.data.crisis_level);
+      }
     } catch (error) {
       const errorMessage = {
         role: 'assistant',
