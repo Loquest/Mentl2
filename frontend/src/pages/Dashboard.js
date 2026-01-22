@@ -187,6 +187,11 @@ const Dashboard = () => {
               )}
             </div>
 
+            {/* Activity Suggestions - Right after Today's Mood */}
+            <div className="mt-6">
+              <ActivitySuggestions />
+            </div>
+
             {/* Mood Trend */}
             {analytics && (
               <div className="bg-white rounded-xl shadow-md p-6 mt-6" data-testid="mood-trend-card">
@@ -209,11 +214,6 @@ const Dashboard = () => {
                 </div>
               </div>
             )}
-
-            {/* Activity Suggestions - Moved below mood section */}
-            <div className="mt-6">
-              <ActivitySuggestions />
-            </div>
           </div>
 
           {/* Recent Logs & Insights */}
