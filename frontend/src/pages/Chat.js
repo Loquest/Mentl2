@@ -116,7 +116,7 @@ const Chat = () => {
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">AI Chat Assistant</h1>
-            <p className="mt-1 text-gray-600">I'm here to support you 24/7</p>
+            <p className="mt-1 text-gray-600">I&apos;m here to support you 24/7</p>
           </div>
           {messages.length > 0 && (
             <button
@@ -150,7 +150,7 @@ const Chat = () => {
                   crisisAlert === 'high' ? 'text-orange-800' : 'text-yellow-800'
                 }`}>
                   {crisisAlert === 'critical' ? 'Crisis Support Activated' : 
-                   crisisAlert === 'high' ? 'We\'re Here For You' : 'Support Available'}
+                   crisisAlert === 'high' ? 'We&apos;re Here For You' : 'Support Available'}
                 </p>
                 <p className="text-sm text-gray-700">Your caregivers have been notified and will reach out soon.</p>
               </div>
