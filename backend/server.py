@@ -38,6 +38,38 @@ app = FastAPI(title="Mental Health Companion API")
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+
+# Helper function for caregiver crisis alerts
+async def send_caregiver_crisis_alert(user_id: str, user_name: str, crisis_level: str, message_snippet: str):
+    """Send crisis alerts to all caregivers of a user"""
+    try:
+        # Find all caregivers who have alert permissions
+        relationships = await caregiver_relationships_collection.find({
+            "patient_id": user_id,
+            "permissions.receive_alerts": True
+        }).to_list(100)
+        
+        for rel in relationships:
+            # Create notification for each caregiver
+            notification = Notification(
+                user_id=rel['caregiver_id'],
+                notification_type="crisis_alert",
+                title=f"⚠️ Crisis Alert: {user_name}",
+                message=f"{user_name} may be in distress. Crisis level: {crisis_level.upper()}. Please check in on them.",
+                related_user_id=user_id,
+                related_user_name=user_name
+            )
+            notification_dict = notification.model_dump()
+            notification_dict['created_at'] = notification_dict['created_at'].isoformat()
+            notification_dict['crisis_level'] = crisis_level
+            notification_dict['message_snippet'] = message_snippet[:100] if message_snippet else ""
+            
+            await notifications_collection.insert_one(notification_dict)
+            
+        logging.info(f"Crisis alert sent to {len(relationships)} caregivers for user {user_id}")
+    except Exception as e:
+        logging.error(f"Error sending caregiver crisis alert: {e}")
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
