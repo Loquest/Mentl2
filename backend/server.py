@@ -374,6 +374,154 @@ async def get_mood_analytics(
     )
 
 
+@api_router.get("/mood-logs/suggestions")
+async def get_mood_suggestions(user_id: str = Depends(get_current_user_id)):
+    """Get AI-powered activity suggestions based on recent mood logs"""
+    try:
+        # Get user info for conditions
+        user_doc = await users_collection.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+        if not user_doc:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get recent mood logs (last 7 days)
+        start_date = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d")
+        recent_logs = await mood_logs_collection.find({
+            "user_id": user_id,
+            "date": {"$gte": start_date}
+        }).sort("date", -1).limit(7).to_list(7)
+        
+        # Get today's log if exists
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        today_log = await mood_logs_collection.find_one({
+            "user_id": user_id,
+            "date": today
+        })
+        
+        # Build context for AI
+        context = f"USER PROFILE:\n"
+        context += f"Conditions: {', '.join(user_doc.get('conditions', ['general']))}\n\n"
+        
+        if today_log:
+            context += f"TODAY'S MOOD LOG:\n"
+            context += f"- Mood Rating: {today_log.get('mood_rating')}/10\n"
+            context += f"- Mood Tag: {today_log.get('mood_tag', 'Not specified')}\n"
+            
+            symptoms = today_log.get('symptoms', {})
+            if symptoms:
+                active_symptoms = [k.replace('_', ' ') for k, v in symptoms.items() if v]
+                if active_symptoms:
+                    context += f"- Symptoms: {', '.join(active_symptoms)}\n"
+            
+            if today_log.get('notes'):
+                context += f"- Notes: {today_log.get('notes')[:100]}\n"
+            
+            context += f"- Sleep: {today_log.get('sleep_hours', 'Not logged')} hours\n"
+            context += f"- Medication: {'Taken' if today_log.get('medication_taken') else 'Not taken'}\n\n"
+        
+        if recent_logs and len(recent_logs) > 1:
+            mood_ratings = [log['mood_rating'] for log in recent_logs]
+            avg_mood = sum(mood_ratings) / len(mood_ratings)
+            context += f"RECENT TREND (Last 7 days):\n"
+            context += f"- Average mood: {avg_mood:.1f}/10\n"
+            context += f"- Recent ratings: {', '.join(map(str, mood_ratings[:5]))}\n\n"
+        
+        # Create AI prompt for suggestions
+        suggestion_prompt = f"""{context}
+Based on this user's current mood state and mental health conditions, provide 4-5 specific, actionable activity suggestions that could help improve or manage their mood.
+
+REQUIREMENTS:
+1. Make suggestions specific to their conditions ({', '.join(user_doc.get('conditions', []))})
+2. Consider their current mood level
+3. Include a mix of quick (5-10 min) and longer activities
+4. Be practical and realistic
+5. Include activities from different categories: physical, mindfulness, social, creative, self-care
+
+FORMAT YOUR RESPONSE AS A JSON ARRAY (no markdown, just raw JSON):
+[
+  {{
+    "activity": "Short activity name (4-6 words)",
+    "description": "Brief description (1 sentence, max 100 chars)",
+    "duration": "5-10 min" or "15-30 min" or "30+ min",
+    "category": "physical" or "mindfulness" or "social" or "creative" or "self-care",
+    "benefit": "How it helps (1 sentence, max 80 chars)"
+  }}
+]
+
+Provide exactly 4-5 suggestions in valid JSON format."""
+
+        # Call AI
+        api_key = os.getenv("EMERGENT_LLM_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"suggestions_{user_id}",
+            system_message="You are a mental health activity advisor. Provide practical, evidence-based activity suggestions in valid JSON format only."
+        ).with_model("openai", "gpt-5.2")
+        
+        from emergentintegrations.llm.chat import UserMessage
+        user_message = UserMessage(text=suggestion_prompt)
+        ai_response = await chat.send_message(user_message)
+        
+        # Parse AI response as JSON
+        import json
+        import re
+        
+        # Try to extract JSON from response (in case AI adds markdown)
+        json_match = re.search(r'\[.*\]', ai_response, re.DOTALL)
+        if json_match:
+            suggestions_json = json_match.group(0)
+        else:
+            suggestions_json = ai_response
+        
+        suggestions = json.loads(suggestions_json)
+        
+        return {
+            "suggestions": suggestions,
+            "based_on_mood": today_log.get('mood_rating') if today_log else None,
+            "generated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse AI suggestions: {ai_response[:200]}")
+        # Fallback suggestions
+        return {
+            "suggestions": [
+                {
+                    "activity": "5-Minute Breathing Exercise",
+                    "description": "Practice deep breathing to calm your nervous system",
+                    "duration": "5-10 min",
+                    "category": "mindfulness",
+                    "benefit": "Reduces anxiety and promotes relaxation"
+                },
+                {
+                    "activity": "Short Walk Outside",
+                    "description": "Take a brief walk in fresh air",
+                    "duration": "10-15 min",
+                    "category": "physical",
+                    "benefit": "Boosts mood and energy levels"
+                },
+                {
+                    "activity": "Gratitude Journaling",
+                    "description": "Write down 3 things you're grateful for",
+                    "duration": "5-10 min",
+                    "category": "self-care",
+                    "benefit": "Shifts focus to positive aspects"
+                }
+            ],
+            "based_on_mood": today_log.get('mood_rating') if today_log else None,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "fallback": True
+        }
+    except Exception as e:
+        logger.error(f"Error generating suggestions: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to generate suggestions"
+        )
+
+
 # ============= AI CHAT ROUTES =============
 
 MENTAL_HEALTH_SYSTEM_PROMPT = """You are a compassionate AI mental health companion assistant. Your role is to:
