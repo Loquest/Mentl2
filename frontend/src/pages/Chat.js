@@ -193,25 +193,25 @@ const Chat = () => {
                     onClick={() => setInput("I'm feeling anxious today")}
                     className="text-left px-4 py-3 bg-purple-50 hover:bg-purple-100 rounded-lg text-sm text-gray-700 transition"
                   >
-                    "I'm feeling anxious today"
+                    I&apos;m feeling anxious today
                   </button>
                   <button
                     onClick={() => setInput("What are some coping strategies for depression?")}
                     className="text-left px-4 py-3 bg-purple-50 hover:bg-purple-100 rounded-lg text-sm text-gray-700 transition"
                   >
-                    "What are coping strategies?"
+                    What are coping strategies?
                   </button>
                   <button
                     onClick={() => setInput("How can I improve my sleep?")}
                     className="text-left px-4 py-3 bg-purple-50 hover:bg-purple-100 rounded-lg text-sm text-gray-700 transition"
                   >
-                    "How can I improve sleep?"
+                    How can I improve sleep?
                   </button>
                   <button
                     onClick={() => setInput("Tell me about mindfulness")}
                     className="text-left px-4 py-3 bg-purple-50 hover:bg-purple-100 rounded-lg text-sm text-gray-700 transition"
                   >
-                    "Tell me about mindfulness"
+                    Tell me about mindfulness
                   </button>
                 </div>
               </div>
