@@ -194,6 +194,252 @@ async def update_profile(
     return User(**user_doc)
 
 
+# ============= DIETARY PREFERENCES ROUTES =============
+
+@api_router.get("/users/me/dietary-preferences")
+async def get_dietary_preferences(user_id: str = Depends(get_current_user_id)):
+    """Get user's dietary preferences"""
+    user_doc = await users_collection.find_one({"id": user_id}, {"_id": 0})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    dietary_prefs = user_doc.get('dietary_preferences', {})
+    return {"dietary_preferences": dietary_prefs, "is_configured": bool(dietary_prefs)}
+
+
+@api_router.put("/users/me/dietary-preferences")
+async def update_dietary_preferences(
+    prefs: DietaryPreferencesUpdate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Update user's dietary preferences"""
+    update_data = {k: v for k, v in prefs.model_dump().items() if v is not None}
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No data to update")
+    
+    # Merge with existing preferences
+    user_doc = await users_collection.find_one({"id": user_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    existing_prefs = user_doc.get('dietary_preferences', {})
+    existing_prefs.update(update_data)
+    
+    await users_collection.update_one(
+        {"id": user_id},
+        {"$set": {"dietary_preferences": existing_prefs}}
+    )
+    
+    return {"message": "Dietary preferences updated", "dietary_preferences": existing_prefs}
+
+
+@api_router.post("/dietary/suggestions")
+async def get_dietary_suggestions(
+    request: DietarySuggestionRequest,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get AI-powered dietary suggestions based on mood, condition, and preferences"""
+    try:
+        # Get user info
+        user_doc = await users_collection.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+        if not user_doc:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        conditions = user_doc.get('conditions', [])
+        dietary_prefs = user_doc.get('dietary_preferences', {})
+        
+        # Get recent mood data for context
+        recent_logs = await mood_logs_collection.find(
+            {"user_id": user_id}
+        ).sort("date", -1).limit(3).to_list(3)
+        
+        # Determine time of day if not provided
+        time_of_day = request.time_of_day
+        if not time_of_day:
+            hour = datetime.now().hour
+            if 5 <= hour < 11:
+                time_of_day = "morning"
+            elif 11 <= hour < 14:
+                time_of_day = "midday"
+            elif 14 <= hour < 17:
+                time_of_day = "afternoon"
+            elif 17 <= hour < 21:
+                time_of_day = "evening"
+            else:
+                time_of_day = "night"
+        
+        # Build context for AI
+        context = build_dietary_context(
+            conditions=conditions,
+            dietary_prefs=dietary_prefs,
+            recent_logs=recent_logs,
+            request=request,
+            time_of_day=time_of_day
+        )
+        
+        # Generate AI suggestion
+        api_key = os.getenv("EMERGENT_LLM_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"dietary_{user_id}_{datetime.now().strftime('%Y%m%d%H%M')}",
+            system_message=DIETARY_SYSTEM_PROMPT
+        ).with_model("openai", "gpt-5.2")
+        
+        user_message = UserMessage(text=context)
+        ai_response = await chat.send_message(user_message)
+        
+        # Parse AI response
+        suggestion = parse_dietary_response(ai_response, request.suggestion_type)
+        
+        return {"suggestion": suggestion, "context": {
+            "time_of_day": time_of_day,
+            "conditions": conditions,
+            "current_mood": request.current_mood,
+            "current_energy": request.current_energy
+        }}
+        
+    except Exception as e:
+        logger.error(f"Error generating dietary suggestion: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error generating suggestion: {str(e)}")
+
+
+def build_dietary_context(conditions, dietary_prefs, recent_logs, request, time_of_day):
+    """Build context string for AI dietary suggestion"""
+    context = f"""Generate a {request.suggestion_type.replace('_', ' ')} recommendation.
+
+USER PROFILE:
+- Mental Health Conditions: {', '.join(conditions) if conditions else 'None specified'}
+- Time of Day: {time_of_day}
+- Current Mood Rating: {request.current_mood or 'Not specified'}/10
+- Current Energy Level: {request.current_energy or 'Not specified'}
+- Current Symptoms: {', '.join(request.current_symptoms) if request.current_symptoms else 'None specified'}
+
+DIETARY PREFERENCES:
+- Diet Type: {dietary_prefs.get('diet_type', 'No restriction')}
+- Allergies: {', '.join(dietary_prefs.get('allergies', [])) or 'None'}
+- Intolerances: {', '.join(dietary_prefs.get('intolerances', [])) or 'None'}
+- Foods to Avoid: {', '.join(dietary_prefs.get('avoid_foods', [])) or 'None'}
+- Cultural Preference: {dietary_prefs.get('cultural_preferences', 'None specified')}
+- Preferred Cuisines: {', '.join(dietary_prefs.get('preferred_cuisines', [])) or 'Any'}
+- Prep Time Preference: {dietary_prefs.get('meal_prep_time', 'moderate')}
+- Budget: {dietary_prefs.get('budget_preference', 'moderate')}
+
+RECENT MOOD HISTORY:
+"""
+    for log in recent_logs:
+        context += f"- {log.get('date')}: Mood {log.get('mood_rating')}/10, Energy: {log.get('energy', 'N/A')}, Sleep: {log.get('sleep_hours', 'N/A')}h\n"
+    
+    context += f"""
+SUGGESTION TYPE: {request.suggestion_type}
+- quick_snack: Simple, ready-to-eat or minimal prep snack
+- recipe: A complete dish with full recipe
+- meal_plan: Structured meals for the day
+
+Please respond in the following JSON format:
+{{
+    "title": "Name of the food/recipe/plan",
+    "description": "Brief appetizing description",
+    "reasoning": "Why this is specifically good for their condition and current state",
+    "ingredients": ["ingredient 1", "ingredient 2"],
+    "preparation_steps": ["step 1", "step 2"],
+    "prep_time": "X minutes",
+    "nutritional_highlights": ["High in Omega-3", "Rich in B-vitamins"],
+    "mood_benefits": ["Supports dopamine production", "Stabilizes blood sugar"],
+    "alternatives": ["Alternative option 1", "Alternative option 2"]
+}}
+"""
+    return context
+
+
+def parse_dietary_response(response: str, suggestion_type: str) -> dict:
+    """Parse AI response into structured suggestion"""
+    try:
+        # Try to extract JSON from response
+        import re
+        json_match = re.search(r'\{[\s\S]*\}', response)
+        if json_match:
+            suggestion_data = json.loads(json_match.group())
+            suggestion = DietarySuggestion(
+                suggestion_type=suggestion_type,
+                title=suggestion_data.get('title', 'Nutritional Suggestion'),
+                description=suggestion_data.get('description', ''),
+                reasoning=suggestion_data.get('reasoning', ''),
+                ingredients=suggestion_data.get('ingredients', []),
+                preparation_steps=suggestion_data.get('preparation_steps', []),
+                prep_time=suggestion_data.get('prep_time'),
+                nutritional_highlights=suggestion_data.get('nutritional_highlights', []),
+                mood_benefits=suggestion_data.get('mood_benefits', []),
+                alternatives=suggestion_data.get('alternatives', [])
+            )
+            return suggestion.model_dump()
+    except (json.JSONDecodeError, Exception) as e:
+        logger.error(f"Error parsing dietary response: {e}")
+    
+    # Fallback: return raw response as description
+    return DietarySuggestion(
+        suggestion_type=suggestion_type,
+        title="Nutritional Suggestion",
+        description=response[:500],
+        reasoning="Personalized for your current mood and condition"
+    ).model_dump()
+
+
+# Dietary AI System Prompt
+DIETARY_SYSTEM_PROMPT = """You are a nutritional wellness assistant specializing in mood-based dietary recommendations for mental health. Your role is to provide evidence-based food suggestions that support cognitive and emotional well-being.
+
+CORE PRINCIPLES:
+1. NOURISHMENT FOCUS: Always emphasize nourishment, satisfaction, and well-being—NEVER calorie counting, restriction, or weight loss language
+2. EVIDENCE-BASED: Base recommendations on clinical nutrition research linking food and mental health
+3. PERSONALIZATION: Consider the user's specific condition, current mood, energy, time of day, and dietary restrictions
+4. SENSITIVITY: Be mindful that users may have histories with disordered eating—avoid triggering language
+
+CONDITION-SPECIFIC GUIDELINES:
+
+ADHD:
+- High-protein foods for sustained dopamine production
+- Complex carbs with low glycemic index for stable energy
+- Omega-3 rich foods (fatty fish, walnuts, flaxseed)
+- Avoid excessive sugar and processed foods
+- Iron and zinc-rich foods for executive function
+- Examples: Eggs, lean meats, quinoa, berries, nuts
+
+DEPRESSION:
+- Tryptophan-rich foods for serotonin synthesis (turkey, eggs, cheese, nuts)
+- B-vitamin rich foods (leafy greens, whole grains, legumes)
+- Omega-3 fatty acids (salmon, sardines, mackerel)
+- Vitamin D sources (fortified foods, fatty fish)
+- Fermented foods for gut-brain axis (yogurt, kimchi, sauerkraut)
+- Avoid alcohol and excessive caffeine
+
+BIPOLAR DISORDER:
+- Magnesium-rich foods for mood stabilization (dark chocolate, avocados, nuts)
+- Anti-inflammatory foods (turmeric, olive oil, leafy greens)
+- Consistent meal timing for circadian rhythm support
+- Complex carbohydrates for stable blood sugar
+- Limit caffeine and alcohol
+- Regular protein intake throughout the day
+
+OCD:
+- Foods supporting GABA production (fermented foods, green tea)
+- Magnesium for anxiety reduction
+- B-vitamins for nervous system support
+- Avoid excessive caffeine and sugar
+- Regular, balanced meals for stability
+
+TIME-OF-DAY CONSIDERATIONS:
+- Morning: Energy-building, protein-focused, complex carbs
+- Midday: Balanced meals, sustained energy
+- Afternoon: Light protein snacks to avoid energy crash
+- Evening: Calming foods, tryptophan-rich for sleep preparation
+- Night: Light, easily digestible if needed
+
+Always respond with practical, appetizing suggestions that users will actually want to eat. Focus on making healthy eating feel enjoyable, not restrictive."""
+
+
 # ============= MOOD LOGGING ROUTES =============
 
 @api_router.post("/mood-logs", response_model=MoodLog, status_code=status.HTTP_201_CREATED)
