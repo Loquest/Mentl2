@@ -879,6 +879,502 @@ async def get_content_item(content_id: str):
     return Content(**content)
 
 
+# ============= CAREGIVER ROUTES =============
+
+@api_router.post("/caregivers/invite", response_model=CaregiverInvitation)
+async def invite_caregiver(
+    invitation_data: CaregiverInvitationCreate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Send an invitation to a caregiver"""
+    # Get current user info
+    user_doc = await users_collection.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Check if invitation already exists
+    existing_invitation = await caregiver_invitations_collection.find_one({
+        "patient_id": user_id,
+        "caregiver_email": invitation_data.caregiver_email,
+        "status": "pending"
+    })
+    
+    if existing_invitation:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invitation already sent to this email"
+        )
+    
+    # Check if relationship already exists
+    existing_relationship = await caregiver_relationships_collection.find_one({
+        "patient_id": user_id,
+        "caregiver_email": invitation_data.caregiver_email
+    })
+    
+    if existing_relationship:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This person is already your caregiver"
+        )
+    
+    # Create invitation
+    permissions = invitation_data.permissions or {
+        "view_mood_logs": True,
+        "view_analytics": True,
+        "receive_alerts": True
+    }
+    
+    invitation = CaregiverInvitation(
+        patient_id=user_id,
+        patient_name=user_doc.get('name', 'Unknown'),
+        patient_email=user_doc.get('email', ''),
+        caregiver_email=invitation_data.caregiver_email,
+        permissions=permissions
+    )
+    
+    invitation_dict = invitation.model_dump()
+    invitation_dict['created_at'] = invitation_dict['created_at'].isoformat()
+    invitation_dict['expires_at'] = invitation_dict['expires_at'].isoformat()
+    
+    await caregiver_invitations_collection.insert_one(invitation_dict)
+    
+    # Create notification for caregiver if they have an account
+    caregiver_user = await users_collection.find_one({"email": invitation_data.caregiver_email})
+    if caregiver_user:
+        notification = Notification(
+            user_id=caregiver_user['id'],
+            notification_type="invitation",
+            title="New Caregiver Invitation",
+            message=f"{user_doc.get('name')} has invited you to be their caregiver.",
+            related_user_id=user_id,
+            related_user_name=user_doc.get('name')
+        )
+        notification_dict = notification.model_dump()
+        notification_dict['created_at'] = notification_dict['created_at'].isoformat()
+        await notifications_collection.insert_one(notification_dict)
+    
+    return invitation
+
+
+@api_router.get("/caregivers/invitations/sent")
+async def get_sent_invitations(user_id: str = Depends(get_current_user_id)):
+    """Get invitations sent by current user (as patient)"""
+    invitations = await caregiver_invitations_collection.find(
+        {"patient_id": user_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    for inv in invitations:
+        if isinstance(inv.get('created_at'), str):
+            inv['created_at'] = datetime.fromisoformat(inv['created_at'])
+        if isinstance(inv.get('expires_at'), str):
+            inv['expires_at'] = datetime.fromisoformat(inv['expires_at'])
+    
+    return {"invitations": invitations}
+
+
+@api_router.get("/caregivers/invitations/received")
+async def get_received_invitations(user_id: str = Depends(get_current_user_id)):
+    """Get invitations received by current user (as caregiver)"""
+    # Get user email
+    user_doc = await users_collection.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    invitations = await caregiver_invitations_collection.find(
+        {"caregiver_email": user_doc['email'], "status": "pending"},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    for inv in invitations:
+        if isinstance(inv.get('created_at'), str):
+            inv['created_at'] = datetime.fromisoformat(inv['created_at'])
+        if isinstance(inv.get('expires_at'), str):
+            inv['expires_at'] = datetime.fromisoformat(inv['expires_at'])
+    
+    return {"invitations": invitations}
+
+
+@api_router.post("/caregivers/invitations/{invitation_id}/accept")
+async def accept_invitation(
+    invitation_id: str,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Accept a caregiver invitation"""
+    # Get user info
+    user_doc = await users_collection.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Find and validate invitation
+    invitation = await caregiver_invitations_collection.find_one({
+        "id": invitation_id,
+        "caregiver_email": user_doc['email'],
+        "status": "pending"
+    })
+    
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found or already processed")
+    
+    # Check if expired
+    expires_at = invitation.get('expires_at')
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+    
+    if expires_at < datetime.now(timezone.utc):
+        await caregiver_invitations_collection.update_one(
+            {"id": invitation_id},
+            {"$set": {"status": "expired"}}
+        )
+        raise HTTPException(status_code=400, detail="Invitation has expired")
+    
+    # Create caregiver relationship
+    relationship = CaregiverRelationship(
+        patient_id=invitation['patient_id'],
+        patient_name=invitation['patient_name'],
+        patient_email=invitation['patient_email'],
+        caregiver_id=user_id,
+        caregiver_name=user_doc.get('name', 'Unknown'),
+        caregiver_email=user_doc['email'],
+        permissions=invitation.get('permissions', {})
+    )
+    
+    relationship_dict = relationship.model_dump()
+    relationship_dict['created_at'] = relationship_dict['created_at'].isoformat()
+    
+    await caregiver_relationships_collection.insert_one(relationship_dict)
+    
+    # Update invitation status
+    await caregiver_invitations_collection.update_one(
+        {"id": invitation_id},
+        {"$set": {"status": "accepted"}}
+    )
+    
+    # Notify the patient
+    notification = Notification(
+        user_id=invitation['patient_id'],
+        notification_type="invitation",
+        title="Invitation Accepted",
+        message=f"{user_doc.get('name')} has accepted your caregiver invitation.",
+        related_user_id=user_id,
+        related_user_name=user_doc.get('name')
+    )
+    notification_dict = notification.model_dump()
+    notification_dict['created_at'] = notification_dict['created_at'].isoformat()
+    await notifications_collection.insert_one(notification_dict)
+    
+    return {"message": "Invitation accepted successfully", "relationship_id": relationship.id}
+
+
+@api_router.post("/caregivers/invitations/{invitation_id}/reject")
+async def reject_invitation(
+    invitation_id: str,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Reject a caregiver invitation"""
+    # Get user email
+    user_doc = await users_collection.find_one({"id": user_id}, {"_id": 0})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    result = await caregiver_invitations_collection.update_one(
+        {"id": invitation_id, "caregiver_email": user_doc['email'], "status": "pending"},
+        {"$set": {"status": "rejected"}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Invitation not found or already processed")
+    
+    return {"message": "Invitation rejected"}
+
+
+@api_router.delete("/caregivers/invitations/{invitation_id}")
+async def cancel_invitation(
+    invitation_id: str,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Cancel a pending invitation (for patient)"""
+    result = await caregiver_invitations_collection.delete_one({
+        "id": invitation_id,
+        "patient_id": user_id,
+        "status": "pending"
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Invitation not found or already processed")
+    
+    return {"message": "Invitation cancelled"}
+
+
+@api_router.get("/caregivers")
+async def get_my_caregivers(user_id: str = Depends(get_current_user_id)):
+    """Get list of caregivers for current user (as patient)"""
+    relationships = await caregiver_relationships_collection.find(
+        {"patient_id": user_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    for rel in relationships:
+        if isinstance(rel.get('created_at'), str):
+            rel['created_at'] = datetime.fromisoformat(rel['created_at'])
+    
+    return {"caregivers": relationships}
+
+
+@api_router.get("/caregivers/patients")
+async def get_my_patients(user_id: str = Depends(get_current_user_id)):
+    """Get list of patients for current user (as caregiver)"""
+    relationships = await caregiver_relationships_collection.find(
+        {"caregiver_id": user_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    for rel in relationships:
+        if isinstance(rel.get('created_at'), str):
+            rel['created_at'] = datetime.fromisoformat(rel['created_at'])
+    
+    return {"patients": relationships}
+
+
+@api_router.get("/caregivers/patients/{patient_id}/mood-logs")
+async def get_patient_mood_logs(
+    patient_id: str,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    limit: int = 30,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get mood logs for a patient (as caregiver)"""
+    # Verify caregiver relationship and permissions
+    relationship = await caregiver_relationships_collection.find_one({
+        "patient_id": patient_id,
+        "caregiver_id": user_id
+    })
+    
+    if not relationship:
+        raise HTTPException(status_code=403, detail="Not authorized to view this patient's data")
+    
+    if not relationship.get('permissions', {}).get('view_mood_logs', False):
+        raise HTTPException(status_code=403, detail="Permission denied to view mood logs")
+    
+    # Build query
+    query = {"user_id": patient_id}
+    if start_date or end_date:
+        date_filter = {}
+        if start_date:
+            date_filter["$gte"] = start_date
+        if end_date:
+            date_filter["$lte"] = end_date
+        query["date"] = date_filter
+    
+    logs = await mood_logs_collection.find(query, {"_id": 0}).sort("date", -1).limit(limit).to_list(limit)
+    
+    for log in logs:
+        if isinstance(log.get('timestamp'), str):
+            log['timestamp'] = datetime.fromisoformat(log['timestamp'])
+    
+    return {"mood_logs": [MoodLog(**log).model_dump() for log in logs]}
+
+
+@api_router.get("/caregivers/patients/{patient_id}/analytics")
+async def get_patient_analytics(
+    patient_id: str,
+    days: int = 30,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get analytics for a patient (as caregiver)"""
+    # Verify caregiver relationship and permissions
+    relationship = await caregiver_relationships_collection.find_one({
+        "patient_id": patient_id,
+        "caregiver_id": user_id
+    })
+    
+    if not relationship:
+        raise HTTPException(status_code=403, detail="Not authorized to view this patient's data")
+    
+    if not relationship.get('permissions', {}).get('view_analytics', False):
+        raise HTTPException(status_code=403, detail="Permission denied to view analytics")
+    
+    # Get patient info
+    patient = await users_collection.find_one({"id": patient_id}, {"_id": 0, "password_hash": 0})
+    
+    # Get logs from last N days
+    start_date = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
+    
+    logs = await mood_logs_collection.find({
+        "user_id": patient_id,
+        "date": {"$gte": start_date}
+    }, {"_id": 0}).to_list(1000)
+    
+    if not logs:
+        return {
+            "patient_name": patient.get('name') if patient else 'Unknown',
+            "average_mood": 0.0,
+            "total_logs": 0,
+            "mood_trend": "stable",
+            "most_common_symptoms": [],
+            "insights": ["No mood logs in this period."],
+            "recent_concerns": []
+        }
+    
+    # Calculate analytics
+    mood_ratings = [log['mood_rating'] for log in logs]
+    avg_mood = mean(mood_ratings)
+    
+    # Determine trend
+    half = len(mood_ratings) // 2
+    if half > 0:
+        first_half_avg = mean(mood_ratings[:half])
+        second_half_avg = mean(mood_ratings[half:])
+        if second_half_avg > first_half_avg + 0.5:
+            trend = "improving"
+        elif second_half_avg < first_half_avg - 0.5:
+            trend = "declining"
+        else:
+            trend = "stable"
+    else:
+        trend = "stable"
+    
+    # Get common symptoms
+    symptom_counts = {}
+    for log in logs:
+        for symptom, value in log.get('symptoms', {}).items():
+            if value:
+                symptom_counts[symptom] = symptom_counts.get(symptom, 0) + 1
+    
+    most_common = sorted(
+        [{"symptom": k, "count": v} for k, v in symptom_counts.items()],
+        key=lambda x: x['count'],
+        reverse=True
+    )[:5]
+    
+    # Identify recent concerns (low mood days, missed medications)
+    recent_concerns = []
+    recent_logs = logs[:7]  # Last 7 logs
+    
+    low_mood_days = [log for log in recent_logs if log['mood_rating'] <= 3]
+    if low_mood_days:
+        recent_concerns.append({
+            "type": "low_mood",
+            "message": f"{len(low_mood_days)} day(s) with very low mood in recent logs",
+            "severity": "high" if len(low_mood_days) >= 3 else "medium"
+        })
+    
+    missed_meds = [log for log in recent_logs if not log.get('medication_taken', True)]
+    if missed_meds and len(missed_meds) > 2:
+        recent_concerns.append({
+            "type": "medication",
+            "message": f"Medication missed on {len(missed_meds)} recent days",
+            "severity": "medium"
+        })
+    
+    return {
+        "patient_name": patient.get('name') if patient else 'Unknown',
+        "average_mood": round(avg_mood, 1),
+        "total_logs": len(logs),
+        "mood_trend": trend,
+        "most_common_symptoms": most_common,
+        "insights": [],
+        "recent_concerns": recent_concerns
+    }
+
+
+@api_router.put("/caregivers/{relationship_id}/permissions")
+async def update_caregiver_permissions(
+    relationship_id: str,
+    update_data: CaregiverPermissionUpdate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Update permissions for a caregiver (as patient)"""
+    result = await caregiver_relationships_collection.update_one(
+        {"id": relationship_id, "patient_id": user_id},
+        {"$set": {"permissions": update_data.permissions}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Relationship not found")
+    
+    return {"message": "Permissions updated successfully"}
+
+
+@api_router.delete("/caregivers/{relationship_id}")
+async def remove_caregiver(
+    relationship_id: str,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Remove a caregiver relationship (patient can remove caregiver, caregiver can remove themselves)"""
+    # Check if user is patient or caregiver
+    relationship = await caregiver_relationships_collection.find_one({
+        "id": relationship_id,
+        "$or": [{"patient_id": user_id}, {"caregiver_id": user_id}]
+    })
+    
+    if not relationship:
+        raise HTTPException(status_code=404, detail="Relationship not found")
+    
+    await caregiver_relationships_collection.delete_one({"id": relationship_id})
+    
+    return {"message": "Caregiver relationship removed"}
+
+
+# ============= NOTIFICATION ROUTES =============
+
+@api_router.get("/notifications")
+async def get_notifications(
+    unread_only: bool = False,
+    limit: int = 50,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get notifications for current user"""
+    query = {"user_id": user_id}
+    if unread_only:
+        query["is_read"] = False
+    
+    notifications = await notifications_collection.find(
+        query, {"_id": 0}
+    ).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    for notif in notifications:
+        if isinstance(notif.get('created_at'), str):
+            notif['created_at'] = datetime.fromisoformat(notif['created_at'])
+    
+    # Count unread
+    unread_count = await notifications_collection.count_documents({
+        "user_id": user_id,
+        "is_read": False
+    })
+    
+    return {"notifications": notifications, "unread_count": unread_count}
+
+
+@api_router.put("/notifications/{notification_id}/read")
+async def mark_notification_read(
+    notification_id: str,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Mark a notification as read"""
+    result = await notifications_collection.update_one(
+        {"id": notification_id, "user_id": user_id},
+        {"$set": {"is_read": True}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    
+    return {"message": "Notification marked as read"}
+
+
+@api_router.put("/notifications/read-all")
+async def mark_all_notifications_read(user_id: str = Depends(get_current_user_id)):
+    """Mark all notifications as read"""
+    await notifications_collection.update_many(
+        {"user_id": user_id, "is_read": False},
+        {"$set": {"is_read": True}}
+    )
+    
+    return {"message": "All notifications marked as read"}
+
+
 # Health check route
 @api_router.get("/")
 async def root():
