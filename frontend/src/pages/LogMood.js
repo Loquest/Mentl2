@@ -81,6 +81,7 @@ const LogMood = () => {
     if (userConditions.includes('bipolar')) allSymptoms = [...allSymptoms, ...SYMPTOMS_BIPOLAR];
     if (userConditions.includes('adhd')) allSymptoms = [...allSymptoms, ...SYMPTOMS_ADHD];
     if (userConditions.includes('depression')) allSymptoms = [...allSymptoms, ...SYMPTOMS_DEPRESSION];
+    if (userConditions.includes('ocd')) allSymptoms = [...allSymptoms, ...SYMPTOMS_OCD];
     return allSymptoms;
   };
 
