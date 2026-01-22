@@ -90,6 +90,7 @@ const Library = () => {
       bipolar: 'bg-blue-100 text-blue-700',
       adhd: 'bg-green-100 text-green-700',
       depression: 'bg-purple-100 text-purple-700',
+      ocd: 'bg-orange-100 text-orange-700',
       coping: 'bg-pink-100 text-pink-700',
       general: 'bg-gray-100 text-gray-700',
       caregivers: 'bg-yellow-100 text-yellow-700'
