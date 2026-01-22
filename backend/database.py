@@ -15,6 +15,9 @@ users_collection = db.users
 mood_logs_collection = db.mood_logs
 chat_history_collection = db.chat_history
 content_collection = db.content
+caregiver_invitations_collection = db.caregiver_invitations
+caregiver_relationships_collection = db.caregiver_relationships
+notifications_collection = db.notifications
 
 async def close_db_connection():
     client.close()
