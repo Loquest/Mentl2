@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
@@ -15,11 +15,7 @@ const Dashboard = () => {
 
   const today = new Date().toISOString().split('T')[0];
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       // Get recent logs
       const logsResponse = await api.get('/mood-logs?limit=7');
@@ -37,7 +33,11 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [today]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   const getMoodEmoji = (rating) => {
     if (rating >= 7) return <Smile className="h-8 w-8 text-green-500" />;
