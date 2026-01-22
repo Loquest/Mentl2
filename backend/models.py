@@ -38,6 +38,54 @@ class UserUpdate(BaseModel):
     height: Optional[float] = Field(None, gt=0, le=300)  # cm
     preferences: Optional[Dict[str, Any]] = None
 
+
+# Dietary Preferences Model
+class DietaryPreferences(BaseModel):
+    diet_type: Optional[str] = None  # "omnivore", "vegetarian", "vegan", "pescatarian", "keto", "paleo"
+    allergies: List[str] = []  # ["nuts", "dairy", "gluten", "shellfish", "eggs", "soy"]
+    intolerances: List[str] = []  # ["lactose", "gluten", "fructose"]
+    cultural_preferences: Optional[str] = None  # "mediterranean", "asian", "indian", "mexican", "middle_eastern"
+    avoid_foods: List[str] = []  # Specific foods to avoid
+    preferred_cuisines: List[str] = []  # Preferred cuisine types
+    meal_prep_time: Optional[str] = "moderate"  # "quick" (<15min), "moderate" (15-30min), "elaborate" (30min+)
+    budget_preference: Optional[str] = "moderate"  # "budget", "moderate", "premium"
+
+
+class DietaryPreferencesUpdate(BaseModel):
+    diet_type: Optional[str] = None
+    allergies: Optional[List[str]] = None
+    intolerances: Optional[List[str]] = None
+    cultural_preferences: Optional[str] = None
+    avoid_foods: Optional[List[str]] = None
+    preferred_cuisines: Optional[List[str]] = None
+    meal_prep_time: Optional[str] = None
+    budget_preference: Optional[str] = None
+
+
+# Dietary Suggestion Request
+class DietarySuggestionRequest(BaseModel):
+    suggestion_type: str = "quick_snack"  # "quick_snack", "recipe", "meal_plan"
+    current_mood: Optional[int] = None  # 1-10
+    current_energy: Optional[str] = None  # "very_low", "low", "moderate", "high", "very_high"
+    current_symptoms: Optional[List[str]] = []  # ["anxious", "agitated", "low_energy", "brain_fog"]
+    time_of_day: Optional[str] = None  # "morning", "midday", "afternoon", "evening", "night"
+
+
+# Dietary Suggestion Response
+class DietarySuggestion(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    suggestion_type: str
+    title: str
+    description: str
+    reasoning: str  # Why this is recommended for their condition/mood
+    ingredients: List[str] = []
+    preparation_steps: List[str] = []
+    prep_time: Optional[str] = None
+    nutritional_highlights: List[str] = []  # ["High in Omega-3", "Rich in Magnesium"]
+    mood_benefits: List[str] = []  # ["Supports serotonin production", "Stabilizes blood sugar"]
+    image_url: Optional[str] = None
+    alternatives: List[str] = []  # Alternative suggestions if user doesn't like this one
+
 # Mood Log Models
 class MoodLogCreate(BaseModel):
     date: str  # YYYY-MM-DD format
