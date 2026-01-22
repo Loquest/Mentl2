@@ -1159,7 +1159,16 @@ You don't have to face this alone. Would you like to tell me more about what's b
             
             await chat_history_collection.insert_one(history_dict)
         
-        return ChatResponse(response=ai_response)
+        # Add resources footer for moderate concern
+        final_response = ai_response
+        if include_resources:
+            final_response += "\n\n---\n💜 *If you need immediate support: Call/text 988 or text HOME to 741741*"
+        
+        return ChatResponse(
+            response=final_response,
+            crisis_detected=crisis_level is not None,
+            crisis_level=crisis_level
+        )
         
     except Exception as e:
         logger.error(f"Error in chat: {str(e)}")
