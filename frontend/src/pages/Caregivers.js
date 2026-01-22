@@ -152,6 +152,8 @@ const Caregivers = () => {
 
   const handleViewPatient = async (patient) => {
     setSelectedPatient(patient);
+    setPatientData(null);
+    setPatientLoading(true);
     try {
       const [moodLogsRes, analyticsRes] = await Promise.all([
         api.get(`/caregivers/patients/${patient.patient_id}/mood-logs?limit=14`),
@@ -164,6 +166,8 @@ const Caregivers = () => {
       });
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to load patient data');
+    } finally {
+      setPatientLoading(false);
     }
   };
 
