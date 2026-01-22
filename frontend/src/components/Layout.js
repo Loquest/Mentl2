@@ -31,7 +31,7 @@ const Layout = ({ children }) => {
             <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-2 rounded-lg">
               <Heart className="h-6 w-6 text-white" />
             </div>
-            <span className="ml-3 text-xl font-bold text-gray-900">MindCare</span>
+            <span className="ml-3 text-xl font-bold text-gray-900">Mentl</span>
           </div>
 
           {/* User Info */}
