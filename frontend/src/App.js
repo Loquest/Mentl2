@@ -12,6 +12,7 @@ import Insights from './pages/Insights';
 import Chat from './pages/Chat';
 import Library from './pages/Library';
 import Settings from './pages/Settings';
+import ActivityDetail from './pages/ActivityDetail';
 
 import './App.css';
 
