@@ -4,13 +4,14 @@ import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
 import ActivitySuggestions from '../components/ActivitySuggestions';
 import api from '../utils/api';
-import { PenLine, MessageCircle, TrendingUp, BookOpen, Smile, Meh, Frown, Calendar } from 'lucide-react';
+import { PenLine, MessageCircle, TrendingUp, BookOpen, Smile, Meh, Frown, Calendar, Users, UserPlus, Heart, Bell, ChevronRight } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [todayLog, setTodayLog] = useState(null);
   const [recentLogs, setRecentLogs] = useState([]);
   const [analytics, setAnalytics] = useState(null);
+  const [caregiverData, setCaregiverData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const today = new Date().toISOString().split('T')[0];
@@ -28,6 +29,22 @@ const Dashboard = () => {
       // Get analytics
       const analyticsResponse = await api.get('/mood-logs/analytics/summary?days=30');
       setAnalytics(analyticsResponse.data);
+
+      // Get caregiver data
+      try {
+        const [caregiversRes, patientsRes, invitationsRes] = await Promise.all([
+          api.get('/caregivers'),
+          api.get('/caregivers/patients'),
+          api.get('/caregivers/invitations/received')
+        ]);
+        setCaregiverData({
+          caregivers: caregiversRes.data.caregivers || [],
+          patients: patientsRes.data.patients || [],
+          pendingInvitations: invitationsRes.data.invitations || []
+        });
+      } catch (err) {
+        console.error('Error fetching caregiver data:', err);
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
