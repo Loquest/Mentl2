@@ -13,13 +13,16 @@ from models import (
     User, UserCreate, UserLogin, UserUpdate, Token,
     MoodLog, MoodLogCreate, MoodLogUpdate, MoodAnalytics,
     ChatRequest, ChatResponse, ChatMessage,
-    Content
+    Content,
+    CaregiverInvitation, CaregiverInvitationCreate, CaregiverRelationship,
+    CaregiverPermissionUpdate, Notification
 )
 from auth import (
     get_password_hash, verify_password, create_access_token, get_current_user_id
 )
 from database import (
     users_collection, mood_logs_collection, chat_history_collection, content_collection,
+    caregiver_invitations_collection, caregiver_relationships_collection, notifications_collection,
     close_db_connection
 )
 
