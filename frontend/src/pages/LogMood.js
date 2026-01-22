@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
+import ActivitySuggestions from '../components/ActivitySuggestions';
 import api from '../utils/api';
 import { Smile, Meh, Frown, Check } from 'lucide-react';
 
