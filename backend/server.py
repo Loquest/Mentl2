@@ -310,7 +310,7 @@ Provide ONLY valid JSON, no markdown."""
             "generated_at": datetime.now(timezone.utc).isoformat()
         }
         
-    except json.JSONDecodeError as e:
+    except json.JSONDecodeError:
         logger.error(f"Failed to parse activity details: {ai_response[:200]}")
         # Fallback response
         return {
@@ -373,11 +373,11 @@ async def get_mood_suggestions(user_id: str = Depends(get_current_user_id)):
         })
         
         # Build context for AI
-        context = f"USER PROFILE:\n"
+        context = "USER PROFILE:\n"
         context += f"Conditions: {', '.join(user_doc.get('conditions', ['general']))}\n\n"
         
         if today_log:
-            context += f"TODAY'S MOOD LOG:\n"
+            context += "TODAY'S MOOD LOG:\n"
             context += f"- Mood Rating: {today_log.get('mood_rating')}/10\n"
             context += f"- Mood Tag: {today_log.get('mood_tag', 'Not specified')}\n"
             
@@ -396,7 +396,7 @@ async def get_mood_suggestions(user_id: str = Depends(get_current_user_id)):
         if recent_logs and len(recent_logs) > 1:
             mood_ratings = [log['mood_rating'] for log in recent_logs]
             avg_mood = sum(mood_ratings) / len(mood_ratings)
-            context += f"RECENT TREND (Last 7 days):\n"
+            context += "RECENT TREND (Last 7 days):\n"
             context += f"- Average mood: {avg_mood:.1f}/10\n"
             context += f"- Recent ratings: {', '.join(map(str, mood_ratings[:5]))}\n\n"
         
@@ -458,7 +458,7 @@ Provide exactly 4-5 suggestions in valid JSON format."""
             "generated_at": datetime.now(timezone.utc).isoformat()
         }
         
-    except json.JSONDecodeError as e:
+    except json.JSONDecodeError:
         logger.error(f"Failed to parse AI suggestions: {ai_response[:200]}")
         # Fallback suggestions
         return {
@@ -701,11 +701,11 @@ async def chat_with_ai(
         ).sort("date", -1).limit(5).to_list(5)
         
         # Build context
-        context = f"\n\nUSER CONTEXT:\n"
+        context = "\n\nUSER CONTEXT:\n"
         context += f"User conditions: {', '.join(user_doc.get('conditions', []))}\n"
         
         if recent_logs:
-            context += f"Recent mood history (last 5 entries):\n"
+            context += "Recent mood history (last 5 entries):\n"
             for log in recent_logs:
                 mood = log.get('mood_rating', 'N/A')
                 date = log.get('date', 'N/A')
