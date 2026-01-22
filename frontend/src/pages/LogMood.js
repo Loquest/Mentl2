@@ -143,7 +143,7 @@ const LogMood = () => {
 
         {success && (
           <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6" data-testid="success-message">
-            ✓ Mood logged successfully! Redirecting...
+            ✓ Mood logged successfully! Check out your personalized activity suggestions below.
           </div>
         )}
 
