@@ -213,6 +213,9 @@ const Dashboard = () => {
 
           {/* Recent Logs & Insights */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Activity Suggestions */}
+            <ActivitySuggestions />
+
             {/* Insights */}
             {analytics && analytics.insights.length > 0 && (
               <div className="bg-white rounded-xl shadow-md p-6" data-testid="insights-card">
