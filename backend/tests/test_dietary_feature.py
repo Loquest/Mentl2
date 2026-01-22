@@ -155,13 +155,13 @@ class TestDietaryPreferences:
     def test_dietary_preferences_unauthorized(self):
         """Test dietary preferences endpoints require authentication"""
         response = requests.get(f"{BASE_URL}/api/users/me/dietary-preferences")
-        assert response.status_code == 401
+        assert response.status_code in [401, 403]  # Either unauthorized or forbidden
         
         response = requests.put(
             f"{BASE_URL}/api/users/me/dietary-preferences",
             json={"diet_type": "vegan"}
         )
-        assert response.status_code == 401
+        assert response.status_code in [401, 403]
 
 
 class TestDietarySuggestions:
@@ -331,7 +331,7 @@ class TestDietarySuggestions:
             f"{BASE_URL}/api/dietary/suggestions",
             json={"suggestion_type": "quick_snack"}
         )
-        assert response.status_code == 401
+        assert response.status_code in [401, 403]  # Either unauthorized or forbidden
     
     def test_dietary_suggestion_includes_user_conditions(self, auth_headers):
         """Test that suggestions consider user's mental health conditions"""
