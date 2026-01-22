@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
+import ActivitySuggestions from '../components/ActivitySuggestions';
 import api from '../utils/api';
 import { PenLine, MessageCircle, TrendingUp, BookOpen, Smile, Meh, Frown, Calendar } from 'lucide-react';
 
