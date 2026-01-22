@@ -13,6 +13,7 @@ import Chat from './pages/Chat';
 import Library from './pages/Library';
 import Settings from './pages/Settings';
 import ActivityDetail from './pages/ActivityDetail';
+import Caregivers from './pages/Caregivers';
 
 import './App.css';
 
