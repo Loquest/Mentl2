@@ -104,7 +104,8 @@ const ActivitySuggestions = ({ showTitle = true, compact = false }) => {
           return (
             <div
               key={index}
-              className="bg-white rounded-lg p-4 border-2 border-gray-100 hover:border-purple-300 transition group cursor-pointer"
+              onClick={() => handleActivityClick(suggestion)}
+              className="bg-white rounded-lg p-4 border-2 border-gray-100 hover:border-purple-300 hover:shadow-md transition group cursor-pointer"
               data-testid={`suggestion-${index}`}
             >
               <div className="flex items-start space-x-3">
@@ -131,6 +132,9 @@ const ActivitySuggestions = ({ showTitle = true, compact = false }) => {
                       💡 {suggestion.benefit}
                     </p>
                   )}
+                  <p className="text-xs text-purple-600 font-medium mt-2">
+                    👉 Click for detailed instructions
+                  </p>
                 </div>
               </div>
             </div>
