@@ -1,4 +1,4 @@
-# MindCare - Mental Health Companion App
+# Mentl - Mental Health Companion App
 
 ## Original Problem Statement
 Build a comprehensive Mental Health Companion App for individuals with Bipolar, ADHD, Depression, and OCD, along with their caregivers.
