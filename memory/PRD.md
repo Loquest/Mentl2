@@ -61,19 +61,24 @@ Build a comprehensive Mental Health Companion App for individuals with Bipolar, 
 - [x] Time range selector (7, 30, 90 days)
 - [x] CSV data export functionality
 
+#### Crisis Detection System (January 2025)
+- [x] Multi-level distress detection (critical, high, moderate)
+- [x] Comprehensive keyword-based crisis detection
+- [x] Emergency resource suggestions with direct call links
+- [x] Automatic caregiver alerts when crisis detected
+- [x] Crisis alert banner in chat interface
+- [x] Resource footer for moderate concern messages
+
 ### 🔄 In Progress
 - None
 
 ### 📋 Backlog (P1 - High Priority)
-- [ ] **Crisis Detection Enhancement**
-  - AI-powered distress detection in chat
-  - Emergency resource suggestions
-  - Alert system for caregivers when patient shows concerning patterns
-
-### 📋 Backlog (P2 - Medium Priority)
 - [ ] Email notifications for caregiver alerts
 - [ ] Push notifications
+
+### 📋 Backlog (P2 - Medium Priority)
 - [ ] Dark mode support
+- [ ] Weekly mood summary emails
 
 ### 📋 Backlog (P3 - Lower Priority)
 - [ ] Export data functionality (extended formats)
