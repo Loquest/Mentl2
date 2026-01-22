@@ -218,162 +218,6 @@ async def get_mood_logs(
     return [MoodLog(**log) for log in logs]
 
 
-@api_router.get("/mood-logs/{log_id}", response_model=MoodLog)
-async def get_mood_log(
-    log_id: str,
-    user_id: str = Depends(get_current_user_id)
-):
-    """Get a specific mood log"""
-    log = await mood_logs_collection.find_one(
-        {"id": log_id, "user_id": user_id},
-        {"_id": 0}
-    )
-    
-    if not log:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Mood log not found"
-        )
-    
-    if isinstance(log.get('timestamp'), str):
-        log['timestamp'] = datetime.fromisoformat(log['timestamp'])
-    
-    return MoodLog(**log)
-
-
-@api_router.put("/mood-logs/{log_id}", response_model=MoodLog)
-async def update_mood_log(
-    log_id: str,
-    update_data: MoodLogUpdate,
-    user_id: str = Depends(get_current_user_id)
-):
-    """Update a mood log entry"""
-    update_dict = {k: v for k, v in update_data.model_dump().items() if v is not None}
-    
-    if not update_dict:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No fields to update"
-        )
-    
-    result = await mood_logs_collection.update_one(
-        {"id": log_id, "user_id": user_id},
-        {"$set": update_dict}
-    )
-    
-    if result.matched_count == 0:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Mood log not found"
-        )
-    
-    # Return updated log
-    log = await mood_logs_collection.find_one({"id": log_id}, {"_id": 0})
-    if isinstance(log.get('timestamp'), str):
-        log['timestamp'] = datetime.fromisoformat(log['timestamp'])
-    
-    return MoodLog(**log)
-
-
-@api_router.delete("/mood-logs/{log_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_mood_log(
-    log_id: str,
-    user_id: str = Depends(get_current_user_id)
-):
-    """Delete a mood log entry"""
-    result = await mood_logs_collection.delete_one({"id": log_id, "user_id": user_id})
-    
-    if result.deleted_count == 0:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Mood log not found"
-        )
-    
-    return None
-
-
-@api_router.get("/mood-logs/analytics/summary", response_model=MoodAnalytics)
-async def get_mood_analytics(
-    days: int = 30,
-    user_id: str = Depends(get_current_user_id)
-):
-    """Get mood analytics and insights"""
-    # Get logs from last N days
-    start_date = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
-    
-    logs = await mood_logs_collection.find({
-        "user_id": user_id,
-        "date": {"$gte": start_date}
-    }, {"_id": 0}).to_list(1000)
-    
-    if not logs:
-        return MoodAnalytics(
-            average_mood=0.0,
-            total_logs=0,
-            mood_trend="stable",
-            most_common_symptoms=[],
-            insights=["Start logging your mood to see insights!"]
-        )
-    
-    # Calculate average mood
-    mood_ratings = [log['mood_rating'] for log in logs]
-    avg_mood = mean(mood_ratings)
-    
-    # Determine mood trend (simple: compare first half vs second half)
-    half = len(mood_ratings) // 2
-    if half > 0:
-        first_half_avg = mean(mood_ratings[:half])
-        second_half_avg = mean(mood_ratings[half:])
-        if second_half_avg > first_half_avg + 0.5:
-            trend = "improving"
-        elif second_half_avg < first_half_avg - 0.5:
-            trend = "declining"
-        else:
-            trend = "stable"
-    else:
-        trend = "stable"
-    
-    # Get most common symptoms
-    symptom_counts = {}
-    for log in logs:
-        for symptom, value in log.get('symptoms', {}).items():
-            if value:  # If symptom is present/true
-                symptom_counts[symptom] = symptom_counts.get(symptom, 0) + 1
-    
-    most_common = sorted(
-        [{"symptom": k, "count": v} for k, v in symptom_counts.items()],
-        key=lambda x: x['count'],
-        reverse=True
-    )[:5]
-    
-    # Generate insights
-    insights = []
-    if avg_mood < 5:
-        insights.append("Your average mood has been below 5. Consider reaching out to a mental health professional.")
-    elif avg_mood >= 7:
-        insights.append("Great job! Your mood has been generally positive.")
-    
-    if trend == "declining":
-        insights.append("Your mood shows a declining trend. This might be a good time to use extra coping strategies.")
-    elif trend == "improving":
-        insights.append("Your mood is improving! Keep up the good work with your self-care routine.")
-    
-    # Check for medication consistency
-    medication_logs = [log for log in logs if log.get('medication_taken')]
-    if len(medication_logs) > 0:
-        medication_rate = len(medication_logs) / len(logs)
-        if medication_rate < 0.7:
-            insights.append(f"Medication adherence: {int(medication_rate * 100)}%. Try setting reminders to maintain consistency.")
-    
-    return MoodAnalytics(
-        average_mood=round(avg_mood, 1),
-        total_logs=len(logs),
-        mood_trend=trend,
-        most_common_symptoms=most_common,
-        insights=insights
-    )
-
-
 @api_router.get("/mood-logs/suggestions")
 async def get_mood_suggestions(user_id: str = Depends(get_current_user_id)):
     """Get AI-powered activity suggestions based on recent mood logs"""
@@ -550,6 +394,162 @@ When responding:
 - Check in on user's safety if concerned
 - Encourage professional help for serious issues
 - Maintain a supportive, hopeful tone"""
+
+
+@api_router.get("/mood-logs/{log_id}", response_model=MoodLog)
+async def get_mood_log(
+    log_id: str,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get a specific mood log"""
+    log = await mood_logs_collection.find_one(
+        {"id": log_id, "user_id": user_id},
+        {"_id": 0}
+    )
+    
+    if not log:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Mood log not found"
+        )
+    
+    if isinstance(log.get('timestamp'), str):
+        log['timestamp'] = datetime.fromisoformat(log['timestamp'])
+    
+    return MoodLog(**log)
+
+
+@api_router.put("/mood-logs/{log_id}", response_model=MoodLog)
+async def update_mood_log(
+    log_id: str,
+    update_data: MoodLogUpdate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Update a mood log entry"""
+    update_dict = {k: v for k, v in update_data.model_dump().items() if v is not None}
+    
+    if not update_dict:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No fields to update"
+        )
+    
+    result = await mood_logs_collection.update_one(
+        {"id": log_id, "user_id": user_id},
+        {"$set": update_dict}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Mood log not found"
+        )
+    
+    # Return updated log
+    log = await mood_logs_collection.find_one({"id": log_id}, {"_id": 0})
+    if isinstance(log.get('timestamp'), str):
+        log['timestamp'] = datetime.fromisoformat(log['timestamp'])
+    
+    return MoodLog(**log)
+
+
+@api_router.delete("/mood-logs/{log_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_mood_log(
+    log_id: str,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Delete a mood log entry"""
+    result = await mood_logs_collection.delete_one({"id": log_id, "user_id": user_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Mood log not found"
+        )
+    
+    return None
+
+
+@api_router.get("/mood-logs/analytics/summary", response_model=MoodAnalytics)
+async def get_mood_analytics(
+    days: int = 30,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get mood analytics and insights"""
+    # Get logs from last N days
+    start_date = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
+    
+    logs = await mood_logs_collection.find({
+        "user_id": user_id,
+        "date": {"$gte": start_date}
+    }, {"_id": 0}).to_list(1000)
+    
+    if not logs:
+        return MoodAnalytics(
+            average_mood=0.0,
+            total_logs=0,
+            mood_trend="stable",
+            most_common_symptoms=[],
+            insights=["Start logging your mood to see insights!"]
+        )
+    
+    # Calculate average mood
+    mood_ratings = [log['mood_rating'] for log in logs]
+    avg_mood = mean(mood_ratings)
+    
+    # Determine mood trend (simple: compare first half vs second half)
+    half = len(mood_ratings) // 2
+    if half > 0:
+        first_half_avg = mean(mood_ratings[:half])
+        second_half_avg = mean(mood_ratings[half:])
+        if second_half_avg > first_half_avg + 0.5:
+            trend = "improving"
+        elif second_half_avg < first_half_avg - 0.5:
+            trend = "declining"
+        else:
+            trend = "stable"
+    else:
+        trend = "stable"
+    
+    # Get most common symptoms
+    symptom_counts = {}
+    for log in logs:
+        for symptom, value in log.get('symptoms', {}).items():
+            if value:  # If symptom is present/true
+                symptom_counts[symptom] = symptom_counts.get(symptom, 0) + 1
+    
+    most_common = sorted(
+        [{"symptom": k, "count": v} for k, v in symptom_counts.items()],
+        key=lambda x: x['count'],
+        reverse=True
+    )[:5]
+    
+    # Generate insights
+    insights = []
+    if avg_mood < 5:
+        insights.append("Your average mood has been below 5. Consider reaching out to a mental health professional.")
+    elif avg_mood >= 7:
+        insights.append("Great job! Your mood has been generally positive.")
+    
+    if trend == "declining":
+        insights.append("Your mood shows a declining trend. This might be a good time to use extra coping strategies.")
+    elif trend == "improving":
+        insights.append("Your mood is improving! Keep up the good work with your self-care routine.")
+    
+    # Check for medication consistency
+    medication_logs = [log for log in logs if log.get('medication_taken')]
+    if len(medication_logs) > 0:
+        medication_rate = len(medication_logs) / len(logs)
+        if medication_rate < 0.7:
+            insights.append(f"Medication adherence: {int(medication_rate * 100)}%. Try setting reminders to maintain consistency.")
+    
+    return MoodAnalytics(
+        average_mood=round(avg_mood, 1),
+        total_logs=len(logs),
+        mood_trend=trend,
+        most_common_symptoms=most_common,
+        insights=insights
+    )
 
 
 @api_router.post("/chat", response_model=ChatResponse)
