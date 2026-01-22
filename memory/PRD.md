@@ -69,6 +69,18 @@ Build a comprehensive Mental Health Companion App for individuals with Bipolar, 
 - [x] Crisis alert banner in chat interface
 - [x] Resource footer for moderate concern messages
 
+#### Mood-Based Dietary Suggestions (January 2025)
+- [x] Dietary preferences onboarding (diet type, allergies, intolerances, cultural preferences)
+- [x] AI-powered food suggestions using GPT-5.2
+- [x] Three suggestion formats: quick snacks, recipes, meal plans
+- [x] Condition-specific nutrition (ADHD, Depression, Bipolar, OCD)
+- [x] Time-of-day awareness for suggestions
+- [x] Mood and energy level integration
+- [x] Evidence-based clinical nutrition strategies
+- [x] Dashboard compact Nutrition Suggestion component
+- [x] Full Nutrition page with preferences management
+- [x] Navigation integration
+
 ### 🔄 In Progress
 - None
 
