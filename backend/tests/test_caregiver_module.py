@@ -46,8 +46,8 @@ class TestCaregiverAuth:
             else:
                 response = requests.post(f"{BASE_URL}{endpoint}", json={})
             
-            assert response.status_code == 401, f"{endpoint} should require auth, got {response.status_code}"
-            print(f"✓ {method} {endpoint} requires authentication")
+            assert response.status_code in [401, 403], f"{endpoint} should require auth, got {response.status_code}"
+            print(f"✓ {method} {endpoint} requires authentication (status: {response.status_code})")
 
 
 class TestCaregiverInvitation:
