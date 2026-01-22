@@ -683,6 +683,272 @@ async def get_mood_analytics(
     )
 
 
+@api_router.get("/mood-logs/analytics/advanced")
+async def get_advanced_analytics(
+    days: int = 30,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get advanced analytics with pattern recognition and trigger identification"""
+    start_date = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
+    
+    logs = await mood_logs_collection.find({
+        "user_id": user_id,
+        "date": {"$gte": start_date}
+    }, {"_id": 0}).sort("date", 1).to_list(1000)
+    
+    if not logs:
+        return {
+            "patterns": [],
+            "triggers": [],
+            "correlations": {},
+            "day_of_week_analysis": [],
+            "mood_distribution": [],
+            "sleep_mood_correlation": None,
+            "medication_impact": None,
+            "symptom_mood_correlation": []
+        }
+    
+    # 1. Day of Week Analysis
+    day_mood = {i: [] for i in range(7)}  # 0=Monday, 6=Sunday
+    day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    
+    for log in logs:
+        try:
+            date_obj = datetime.strptime(log['date'], "%Y-%m-%d")
+            day_of_week = date_obj.weekday()
+            day_mood[day_of_week].append(log['mood_rating'])
+        except (ValueError, KeyError):
+            continue
+    
+    day_of_week_analysis = []
+    for day_idx, moods in day_mood.items():
+        if moods:
+            day_of_week_analysis.append({
+                "day": day_names[day_idx],
+                "day_index": day_idx,
+                "average_mood": round(mean(moods), 1),
+                "log_count": len(moods),
+                "min_mood": min(moods),
+                "max_mood": max(moods)
+            })
+    
+    # 2. Mood Distribution
+    mood_distribution = []
+    mood_counts = {}
+    for log in logs:
+        rating = log['mood_rating']
+        mood_counts[rating] = mood_counts.get(rating, 0) + 1
+    
+    for rating in range(1, 11):
+        mood_distribution.append({
+            "rating": rating,
+            "count": mood_counts.get(rating, 0),
+            "percentage": round((mood_counts.get(rating, 0) / len(logs)) * 100, 1) if logs else 0
+        })
+    
+    # 3. Sleep-Mood Correlation
+    sleep_mood_data = [(log.get('sleep_hours'), log['mood_rating']) for log in logs if log.get('sleep_hours')]
+    sleep_mood_correlation = None
+    
+    if len(sleep_mood_data) >= 5:
+        # Group by sleep ranges
+        sleep_ranges = {
+            "less_than_5": [],
+            "5_to_6": [],
+            "6_to_7": [],
+            "7_to_8": [],
+            "more_than_8": []
+        }
+        
+        for sleep, mood in sleep_mood_data:
+            if sleep < 5:
+                sleep_ranges["less_than_5"].append(mood)
+            elif sleep < 6:
+                sleep_ranges["5_to_6"].append(mood)
+            elif sleep < 7:
+                sleep_ranges["6_to_7"].append(mood)
+            elif sleep < 8:
+                sleep_ranges["7_to_8"].append(mood)
+            else:
+                sleep_ranges["more_than_8"].append(mood)
+        
+        sleep_mood_correlation = {
+            "data": [
+                {"range": "<5 hrs", "avg_mood": round(mean(sleep_ranges["less_than_5"]), 1) if sleep_ranges["less_than_5"] else None, "count": len(sleep_ranges["less_than_5"])},
+                {"range": "5-6 hrs", "avg_mood": round(mean(sleep_ranges["5_to_6"]), 1) if sleep_ranges["5_to_6"] else None, "count": len(sleep_ranges["5_to_6"])},
+                {"range": "6-7 hrs", "avg_mood": round(mean(sleep_ranges["6_to_7"]), 1) if sleep_ranges["6_to_7"] else None, "count": len(sleep_ranges["6_to_7"])},
+                {"range": "7-8 hrs", "avg_mood": round(mean(sleep_ranges["7_to_8"]), 1) if sleep_ranges["7_to_8"] else None, "count": len(sleep_ranges["7_to_8"])},
+                {"range": "8+ hrs", "avg_mood": round(mean(sleep_ranges["more_than_8"]), 1) if sleep_ranges["more_than_8"] else None, "count": len(sleep_ranges["more_than_8"])}
+            ],
+            "optimal_sleep": None
+        }
+        
+        # Find optimal sleep range
+        best_range = max(
+            [(r, d["avg_mood"]) for r, d in zip(["<5 hrs", "5-6 hrs", "6-7 hrs", "7-8 hrs", "8+ hrs"], sleep_mood_correlation["data"]) if d["avg_mood"] is not None],
+            key=lambda x: x[1],
+            default=(None, None)
+        )
+        if best_range[0]:
+            sleep_mood_correlation["optimal_sleep"] = best_range[0]
+    
+    # 4. Medication Impact Analysis
+    medication_impact = None
+    med_taken_moods = [log['mood_rating'] for log in logs if log.get('medication_taken')]
+    med_not_taken_moods = [log['mood_rating'] for log in logs if not log.get('medication_taken')]
+    
+    if med_taken_moods and med_not_taken_moods:
+        medication_impact = {
+            "with_medication": {
+                "average_mood": round(mean(med_taken_moods), 1),
+                "count": len(med_taken_moods)
+            },
+            "without_medication": {
+                "average_mood": round(mean(med_not_taken_moods), 1),
+                "count": len(med_not_taken_moods)
+            },
+            "difference": round(mean(med_taken_moods) - mean(med_not_taken_moods), 1)
+        }
+    
+    # 5. Symptom-Mood Correlation
+    symptom_mood_correlation = []
+    symptom_moods = {}
+    
+    for log in logs:
+        for symptom, present in log.get('symptoms', {}).items():
+            if symptom not in symptom_moods:
+                symptom_moods[symptom] = {"with": [], "without": []}
+            if present:
+                symptom_moods[symptom]["with"].append(log['mood_rating'])
+            else:
+                symptom_moods[symptom]["without"].append(log['mood_rating'])
+    
+    for symptom, data in symptom_moods.items():
+        if len(data["with"]) >= 3:
+            avg_with = round(mean(data["with"]), 1)
+            avg_without = round(mean(data["without"]), 1) if data["without"] else None
+            symptom_mood_correlation.append({
+                "symptom": symptom.replace("_", " ").title(),
+                "symptom_key": symptom,
+                "avg_mood_with_symptom": avg_with,
+                "avg_mood_without_symptom": avg_without,
+                "impact": round(avg_with - avg_without, 1) if avg_without else None,
+                "occurrence_count": len(data["with"])
+            })
+    
+    # Sort by impact (most negative first)
+    symptom_mood_correlation.sort(key=lambda x: x["impact"] if x["impact"] is not None else 0)
+    
+    # 6. Pattern Recognition
+    patterns = []
+    
+    # Check for weekend vs weekday pattern
+    weekday_moods = [m for d, m in zip(day_of_week_analysis, [d.get("average_mood") for d in day_of_week_analysis]) if d.get("day_index", 0) < 5 and m]
+    weekend_moods = [m for d, m in zip(day_of_week_analysis, [d.get("average_mood") for d in day_of_week_analysis]) if d.get("day_index", 0) >= 5 and m]
+    
+    if weekday_moods and weekend_moods:
+        weekday_avg = mean([d["average_mood"] for d in day_of_week_analysis if d["day_index"] < 5])
+        weekend_avg = mean([d["average_mood"] for d in day_of_week_analysis if d["day_index"] >= 5])
+        
+        if weekend_avg > weekday_avg + 0.5:
+            patterns.append({
+                "type": "weekly",
+                "pattern": "weekend_boost",
+                "description": "Your mood tends to be better on weekends",
+                "details": f"Weekend avg: {round(weekend_avg, 1)}, Weekday avg: {round(weekday_avg, 1)}"
+            })
+        elif weekday_avg > weekend_avg + 0.5:
+            patterns.append({
+                "type": "weekly",
+                "pattern": "weekday_preference",
+                "description": "Your mood tends to be better on weekdays",
+                "details": f"Weekday avg: {round(weekday_avg, 1)}, Weekend avg: {round(weekend_avg, 1)}"
+            })
+    
+    # Check for low mood streaks
+    streak_threshold = 4
+    current_streak = 0
+    max_low_streak = 0
+    
+    for log in logs:
+        if log['mood_rating'] <= 4:
+            current_streak += 1
+            max_low_streak = max(max_low_streak, current_streak)
+        else:
+            current_streak = 0
+    
+    if max_low_streak >= 3:
+        patterns.append({
+            "type": "streak",
+            "pattern": "low_mood_streak",
+            "description": f"You had a streak of {max_low_streak} consecutive low mood days",
+            "details": "Consider reaching out for support during extended low periods"
+        })
+    
+    # Check for high variability
+    if len(logs) >= 7:
+        mood_std = (sum((m - mean(mood_ratings := [l['mood_rating'] for l in logs]))**2 for m in mood_ratings) / len(mood_ratings)) ** 0.5
+        if mood_std > 2.5:
+            patterns.append({
+                "type": "variability",
+                "pattern": "high_variability",
+                "description": "Your mood shows high variability",
+                "details": "Large mood swings may indicate the need for stabilization strategies"
+            })
+    
+    # 7. Trigger Identification
+    triggers = []
+    
+    # Identify symptoms that correlate with low mood
+    for corr in symptom_mood_correlation[:5]:
+        if corr["impact"] and corr["impact"] < -1:
+            triggers.append({
+                "trigger": corr["symptom"],
+                "type": "symptom",
+                "impact": corr["impact"],
+                "description": f"When experiencing {corr['symptom'].lower()}, your mood drops by {abs(corr['impact'])} points on average",
+                "frequency": corr["occurrence_count"]
+            })
+    
+    # Sleep as a trigger
+    if sleep_mood_correlation:
+        low_sleep_data = next((d for d in sleep_mood_correlation["data"] if d["range"] == "<5 hrs" and d["avg_mood"]), None)
+        good_sleep_data = next((d for d in sleep_mood_correlation["data"] if d["range"] == "7-8 hrs" and d["avg_mood"]), None)
+        
+        if low_sleep_data and good_sleep_data and low_sleep_data["avg_mood"] < good_sleep_data["avg_mood"] - 1:
+            triggers.append({
+                "trigger": "Poor Sleep (<5 hours)",
+                "type": "sleep",
+                "impact": round(low_sleep_data["avg_mood"] - good_sleep_data["avg_mood"], 1),
+                "description": f"Getting less than 5 hours of sleep correlates with lower mood (avg: {low_sleep_data['avg_mood']}/10)",
+                "frequency": low_sleep_data["count"]
+            })
+    
+    # Day of week triggers
+    if day_of_week_analysis:
+        worst_day = min(day_of_week_analysis, key=lambda x: x["average_mood"])
+        best_day = max(day_of_week_analysis, key=lambda x: x["average_mood"])
+        
+        if best_day["average_mood"] - worst_day["average_mood"] > 1.5:
+            triggers.append({
+                "trigger": f"{worst_day['day']}s",
+                "type": "day_of_week",
+                "impact": round(worst_day["average_mood"] - best_day["average_mood"], 1),
+                "description": f"{worst_day['day']}s tend to be your most challenging day (avg mood: {worst_day['average_mood']}/10)",
+                "frequency": worst_day["log_count"]
+            })
+    
+    return {
+        "patterns": patterns,
+        "triggers": triggers,
+        "day_of_week_analysis": day_of_week_analysis,
+        "mood_distribution": mood_distribution,
+        "sleep_mood_correlation": sleep_mood_correlation,
+        "medication_impact": medication_impact,
+        "symptom_mood_correlation": symptom_mood_correlation[:10]
+    }
+
+
 @api_router.post("/chat", response_model=ChatResponse)
 async def chat_with_ai(
     request: ChatRequest,
