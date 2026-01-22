@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import uuid
 
 # User Models
@@ -118,3 +118,64 @@ class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: User
+
+
+# Caregiver Models
+class CaregiverInvitation(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    patient_id: str  # User who sent the invitation
+    patient_name: str
+    patient_email: str
+    caregiver_email: str  # Email of the caregiver being invited
+    status: str = "pending"  # "pending", "accepted", "rejected", "expired"
+    permissions: Dict[str, bool] = Field(default_factory=lambda: {
+        "view_mood_logs": True,
+        "view_analytics": True,
+        "receive_alerts": True
+    })
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    expires_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc) + timedelta(days=7))
+
+
+class CaregiverInvitationCreate(BaseModel):
+    caregiver_email: EmailStr
+    permissions: Optional[Dict[str, bool]] = None
+
+
+class CaregiverRelationship(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    patient_id: str
+    patient_name: str
+    patient_email: str
+    caregiver_id: str
+    caregiver_name: str
+    caregiver_email: str
+    permissions: Dict[str, bool] = Field(default_factory=lambda: {
+        "view_mood_logs": True,
+        "view_analytics": True,
+        "receive_alerts": True
+    })
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class CaregiverPermissionUpdate(BaseModel):
+    permissions: Dict[str, bool]
+
+
+# Notification Models
+class Notification(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str  # Recipient of the notification
+    notification_type: str  # "invitation", "alert", "mood_concern", "missed_logs"
+    title: str
+    message: str
+    related_user_id: Optional[str] = None  # Patient ID for caregiver alerts
+    related_user_name: Optional[str] = None
+    is_read: bool = False
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
