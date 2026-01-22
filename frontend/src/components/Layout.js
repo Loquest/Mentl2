@@ -19,7 +19,6 @@ const Layout = ({ children }) => {
     { name: 'Insights', path: '/insights', icon: BarChart3 },
     { name: 'AI Chat', path: '/chat', icon: MessageCircle },
     { name: 'Library', path: '/library', icon: BookOpen },
-    { name: 'Settings', path: '/settings', icon: Settings },
   ];
 
   return (
