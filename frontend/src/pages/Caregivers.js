@@ -23,6 +23,7 @@ const Caregivers = () => {
   // Selected patient for viewing
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [patientData, setPatientData] = useState(null);
+  const [patientLoading, setPatientLoading] = useState(false);
   
   // Invite form
   const [showInviteForm, setShowInviteForm] = useState(false);
