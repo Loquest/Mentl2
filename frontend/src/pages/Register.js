@@ -7,6 +7,7 @@ const CONDITION_OPTIONS = [
   { id: 'bipolar', label: 'Bipolar Disorder', color: 'bg-blue-100 border-blue-300' },
   { id: 'adhd', label: 'ADHD', color: 'bg-green-100 border-green-300' },
   { id: 'depression', label: 'Depression', color: 'bg-purple-100 border-purple-300' },
+  { id: 'ocd', label: 'OCD', color: 'bg-orange-100 border-orange-300' },
 ];
 
 const Register = () => {
