@@ -83,6 +83,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/caregivers"
+            element={
+              <ProtectedRoute>
+                <Caregivers />
+              </ProtectedRoute>
+            }
+          />
           
           {/* Default Redirect */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
