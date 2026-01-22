@@ -866,7 +866,6 @@ async def get_advanced_analytics(
             })
     
     # Check for low mood streaks
-    streak_threshold = 4
     current_streak = 0
     max_low_streak = 0
     
@@ -887,7 +886,9 @@ async def get_advanced_analytics(
     
     # Check for high variability
     if len(logs) >= 7:
-        mood_std = (sum((m - mean(mood_ratings := [l['mood_rating'] for l in logs]))**2 for m in mood_ratings) / len(mood_ratings)) ** 0.5
+        all_mood_ratings = [log['mood_rating'] for log in logs]
+        mood_mean = mean(all_mood_ratings)
+        mood_std = (sum((m - mood_mean)**2 for m in all_mood_ratings) / len(all_mood_ratings)) ** 0.5
         if mood_std > 2.5:
             patterns.append({
                 "type": "variability",
