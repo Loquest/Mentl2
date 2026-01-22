@@ -8,6 +8,7 @@ const CATEGORIES = [
   { id: 'bipolar', label: 'Bipolar' },
   { id: 'adhd', label: 'ADHD' },
   { id: 'depression', label: 'Depression' },
+  { id: 'ocd', label: 'OCD' },
   { id: 'coping', label: 'Coping Strategies' },
   { id: 'general', label: 'General' },
   { id: 'caregivers', label: 'For Caregivers' },
