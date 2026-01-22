@@ -955,7 +955,7 @@ async def chat_with_ai(
     request: ChatRequest,
     user_id: str = Depends(get_current_user_id)
 ):
-    """Chat with AI assistant"""
+    """Chat with AI assistant with enhanced crisis detection"""
     try:
         # Get user info for context
         user_doc = await users_collection.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
@@ -984,24 +984,94 @@ async def chat_with_ai(
         else:
             context += "No mood logs yet.\n"
         
-        # Check for crisis keywords
-        crisis_keywords = ["suicide", "kill myself", "end it all", "want to die", "self-harm", "hurt myself"]
-        is_crisis = any(keyword in request.message.lower() for keyword in crisis_keywords)
+        # Enhanced Crisis Detection
+        message_lower = request.message.lower()
         
-        if is_crisis:
-            crisis_response = """I'm really concerned about what you're sharing with me. Your safety is the most important thing right now.
+        # Critical crisis keywords (immediate danger)
+        critical_keywords = [
+            "suicide", "kill myself", "end my life", "want to die", "better off dead",
+            "end it all", "take my life", "jump off", "hang myself", "overdose",
+            "slit my wrists", "shoot myself", "don't want to live"
+        ]
+        
+        # High concern keywords (significant distress)
+        high_concern_keywords = [
+            "self-harm", "hurt myself", "cutting", "burning myself", "punish myself",
+            "can't go on", "no point", "no reason to live", "hopeless", "worthless",
+            "burden to everyone", "everyone hates me", "no one cares", "alone forever",
+            "give up", "can't take it anymore", "exhausted of living"
+        ]
+        
+        # Moderate concern keywords (needs support)
+        moderate_concern_keywords = [
+            "depressed", "anxious", "panic attack", "can't breathe", "overwhelmed",
+            "breaking down", "falling apart", "lost", "scared", "terrified",
+            "crying all day", "can't stop crying", "numb", "empty inside"
+        ]
+        
+        # Determine crisis level
+        crisis_level = None
+        if any(kw in message_lower for kw in critical_keywords):
+            crisis_level = "critical"
+        elif any(kw in message_lower for kw in high_concern_keywords):
+            crisis_level = "high"
+        elif any(kw in message_lower for kw in moderate_concern_keywords):
+            crisis_level = "moderate"
+        
+        # Send caregiver alert for critical and high concern levels
+        if crisis_level in ["critical", "high"]:
+            await send_caregiver_crisis_alert(
+                user_id=user_id,
+                user_name=user_doc.get('name', 'Unknown'),
+                crisis_level=crisis_level,
+                message_snippet=request.message[:200]
+            )
+        
+        # Handle critical crisis
+        if crisis_level == "critical":
+            crisis_response = """I'm deeply concerned about what you're sharing. Your life matters, and I want you to get the support you need right now.
 
-🆘 **Please reach out for immediate help:**
+🚨 **PLEASE REACH OUT FOR IMMEDIATE HELP:**
 
-• **988 Suicide & Crisis Lifeline**: Call or text 988 (available 24/7)
-• **Crisis Text Line**: Text HOME to 741741
-• **Emergency**: Call 911 if you're in immediate danger
+📞 **988 Suicide & Crisis Lifeline**: Call or text **988** (24/7)
+💬 **Crisis Text Line**: Text **HOME** to **741741**
+🚑 **Emergency Services**: Call **911** if you're in immediate danger
+🌐 **International**: Visit findahelpline.com for resources in your country
 
-You deserve support, and there are people who want to help you through this. These feelings can be overwhelming, but they are temporary, and help is available.
+**You are not alone.** These feelings are temporary, even when they don't feel that way. Crisis counselors are trained to help you through this exact moment.
 
-Would you like to talk about what's been making you feel this way? I'm here to listen, but please do reach out to a crisis counselor who can provide the immediate support you need."""
+I've also notified your connected caregivers so they can reach out to support you.
+
+Would you like to stay and talk while you wait for help? I'm here with you."""
             
-            return ChatResponse(response=crisis_response)
+            return ChatResponse(
+                response=crisis_response,
+                crisis_detected=True,
+                crisis_level=crisis_level
+            )
+        
+        # Handle high concern
+        if crisis_level == "high":
+            concern_response = """I hear you, and what you're going through sounds incredibly difficult. I'm concerned about your wellbeing.
+
+💜 **Support resources available to you:**
+
+📞 **988 Lifeline**: Call or text **988** - They're there for ANY emotional distress
+💬 **Crisis Text Line**: Text **HOME** to **741741**
+🧠 **SAMHSA Helpline**: 1-800-662-4357 (mental health & substance support)
+
+I've notified your caregivers about how you're feeling so they can check in on you.
+
+You don't have to face this alone. Would you like to tell me more about what's been happening? Sometimes talking through our feelings can help, even a little."""
+            
+            return ChatResponse(
+                response=concern_response,
+                crisis_detected=True,
+                crisis_level=crisis_level
+            )
+        
+        # For moderate concern, add resources to AI response
+        include_resources = crisis_level == "moderate"
         
         # Initialize AI chat
         api_key = os.getenv("EMERGENT_LLM_KEY")
