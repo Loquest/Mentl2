@@ -15,7 +15,8 @@ from models import (
     ChatRequest, ChatResponse, ChatMessage,
     Content,
     CaregiverInvitation, CaregiverInvitationCreate, CaregiverRelationship,
-    CaregiverPermissionUpdate, Notification
+    CaregiverPermissionUpdate, Notification,
+    DietaryPreferences, DietaryPreferencesUpdate, DietarySuggestionRequest, DietarySuggestion
 )
 from auth import (
     get_password_hash, verify_password, create_access_token, get_current_user_id
@@ -28,6 +29,7 @@ from database import (
 
 # AI Chat Integration
 from emergentintegrations.llm.chat import LlmChat, UserMessage
+import json
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
