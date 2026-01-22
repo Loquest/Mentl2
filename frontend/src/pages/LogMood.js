@@ -30,6 +30,13 @@ const SYMPTOMS_DEPRESSION = [
   { id: 'difficulty_concentrating', label: 'Difficulty concentrating' },
 ];
 
+const SYMPTOMS_OCD = [
+  { id: 'intrusive_thoughts', label: 'Intrusive thoughts' },
+  { id: 'compulsive_behaviors', label: 'Compulsive behaviors' },
+  { id: 'excessive_checking', label: 'Excessive checking' },
+  { id: 'need_for_symmetry', label: 'Need for symmetry/order' },
+];
+
 const LogMood = () => {
   const navigate = useNavigate();
   const today = new Date().toISOString().split('T')[0];
