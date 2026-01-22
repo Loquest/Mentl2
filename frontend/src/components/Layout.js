@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Heart, Home, PenLine, BarChart3, MessageCircle, BookOpen, Settings, LogOut } from 'lucide-react';
+import { Heart, Home, PenLine, BarChart3, MessageCircle, BookOpen, Settings, LogOut, User } from 'lucide-react';
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
