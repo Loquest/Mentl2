@@ -159,7 +159,7 @@ const Dashboard = () => {
           {/* Today's Mood */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl shadow-md p-6" data-testid="todays-mood-card">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Today's Mood</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Today&apos;s Mood</h2>
               {todayLog ? (
                 <div className={`border-2 rounded-lg p-4 ${getMoodColor(todayLog.mood_rating)}`}>
                   <div className="flex items-center justify-between mb-3">
