@@ -44,6 +44,7 @@ const LogMood = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [userConditions, setUserConditions] = useState([]);
 
   useEffect(() => {
