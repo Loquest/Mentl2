@@ -14,6 +14,7 @@ import Library from './pages/Library';
 import Settings from './pages/Settings';
 import ActivityDetail from './pages/ActivityDetail';
 import Caregivers from './pages/Caregivers';
+import Nutrition from './pages/Nutrition';
 
 import './App.css';
 
