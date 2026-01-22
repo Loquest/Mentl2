@@ -209,12 +209,15 @@ const Dashboard = () => {
                 </div>
               </div>
             )}
+
+            {/* Activity Suggestions - Moved below mood section */}
+            <div className="mt-6">
+              <ActivitySuggestions />
+            </div>
           </div>
 
           {/* Recent Logs & Insights */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Activity Suggestions */}
-            <ActivitySuggestions />
 
             {/* Insights */}
             {analytics && analytics.insights.length > 0 && (
