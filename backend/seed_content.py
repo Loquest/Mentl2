@@ -112,6 +112,33 @@ MENTAL_HEALTH_CONTENT = [
         "description": "Important crisis resources including the 988 Suicide & Crisis Lifeline.",
         "content_url": "https://988lifeline.org/",
         "tags": ["crisis", "emergency", "support"]
+    },
+    {
+        "id": "13",
+        "title": "Understanding OCD: Intrusive Thoughts and Compulsions",
+        "content_type": "article",
+        "category": "ocd",
+        "description": "Learn about OCD symptoms, triggers, and evidence-based treatment approaches.",
+        "content_url": "https://www.nimh.nih.gov/health/topics/obsessive-compulsive-disorder-ocd",
+        "tags": ["ocd", "intrusive-thoughts", "compulsions"]
+    },
+    {
+        "id": "14",
+        "title": "Exposure and Response Prevention (ERP) for OCD",
+        "content_type": "article",
+        "category": "ocd",
+        "description": "Understanding ERP therapy, the gold standard treatment for OCD.",
+        "content_url": "https://iocdf.org/about-ocd/ocd-treatment/erp/",
+        "tags": ["ocd", "erp", "therapy", "treatment"]
+    },
+    {
+        "id": "15",
+        "title": "Managing OCD in Daily Life",
+        "content_type": "article",
+        "category": "ocd",
+        "description": "Practical strategies for managing OCD symptoms and reducing compulsions.",
+        "content_url": "https://iocdf.org/",
+        "tags": ["ocd", "management", "coping"]
     }
 ]
 
