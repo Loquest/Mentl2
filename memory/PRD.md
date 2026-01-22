@@ -65,23 +65,20 @@ Build a comprehensive Mental Health Companion App for individuals with Bipolar, 
 - None
 
 ### 📋 Backlog (P1 - High Priority)
-- [ ] **Enhanced Visual Analytics**
-  - Advanced charts with pattern recognition
-  - Trigger identification
-  - Mood correlation analysis
-
-### 📋 Backlog (P2 - Medium Priority)
 - [ ] **Crisis Detection Enhancement**
   - AI-powered distress detection in chat
   - Emergency resource suggestions
   - Alert system for caregivers when patient shows concerning patterns
 
-### 📋 Backlog (P3 - Lower Priority)
+### 📋 Backlog (P2 - Medium Priority)
 - [ ] Email notifications for caregiver alerts
 - [ ] Push notifications
 - [ ] Dark mode support
-- [ ] Export data functionality
+
+### 📋 Backlog (P3 - Lower Priority)
+- [ ] Export data functionality (extended formats)
 - [ ] Weekly/monthly mood reports
+- [ ] Social sharing features
 
 ## API Endpoints
 
