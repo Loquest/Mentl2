@@ -213,10 +213,10 @@ const Settings = () => {
         )}
 
         {/* Tab Navigation */}
-        <div className={`flex space-x-2 mb-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+        <div className={`flex space-x-2 mb-6 border-b overflow-x-auto ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
           <button
             onClick={() => setActiveTab('personal')}
-            className={`px-6 py-3 font-semibold transition ${
+            className={`px-6 py-3 font-semibold whitespace-nowrap transition ${
               activeTab === 'personal'
                 ? 'border-b-2 border-purple-500 text-purple-500'
                 : isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'
@@ -227,14 +227,26 @@ const Settings = () => {
           </button>
           <button
             onClick={() => setActiveTab('conditions')}
-            className={`px-6 py-3 font-semibold transition ${
+            className={`px-6 py-3 font-semibold whitespace-nowrap transition ${
               activeTab === 'conditions'
                 ? 'border-b-2 border-purple-500 text-purple-500'
                 : isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'
             }`}
             data-testid="conditions-tab"
           >
-            Mental Health Conditions
+            Mental Health
+          </button>
+          <button
+            onClick={() => setActiveTab('notifications')}
+            className={`px-6 py-3 font-semibold whitespace-nowrap transition ${
+              activeTab === 'notifications'
+                ? 'border-b-2 border-purple-500 text-purple-500'
+                : isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'
+            }`}
+            data-testid="notifications-tab"
+          >
+            <Bell className="h-4 w-4 inline mr-1" />
+            Notifications
           </button>
         </div>
 
