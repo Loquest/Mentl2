@@ -1,9 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import Layout from '../components/Layout';
 import api from '../utils/api';
-import { User, Check, AlertCircle, Heart, Activity, Scale, Ruler } from 'lucide-react';
+import { User, Check, AlertCircle, Heart, Activity, Scale, Ruler, Bell, BellOff } from 'lucide-react';
+import { 
+  isPushSupported, 
+  getNotificationPermission, 
+  requestNotificationPermission,
+  initializePushNotifications,
+  subscribeToPush,
+  unsubscribeFromPush,
+  isSubscribedToPush,
+  showLocalNotification
+} from '../utils/pushNotifications';
 
 const CONDITION_OPTIONS = [
   { id: 'bipolar', label: 'Bipolar Disorder', description: 'Manage mood episodes and track patterns', icon: '🔄' },
@@ -29,7 +39,28 @@ const Settings = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('personal'); // 'personal' or 'conditions'
+  const [activeTab, setActiveTab] = useState('personal'); // 'personal', 'conditions', or 'notifications'
+  
+  // Notification State
+  const [pushSupported, setPushSupported] = useState(false);
+  const [pushPermission, setPushPermission] = useState('default');
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [notificationLoading, setNotificationLoading] = useState(false);
+
+  const checkPushStatus = useCallback(async () => {
+    const supported = isPushSupported();
+    setPushSupported(supported);
+    
+    if (supported) {
+      setPushPermission(getNotificationPermission());
+      const subscribed = await isSubscribedToPush();
+      setPushSubscribed(subscribed);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkPushStatus();
+  }, [checkPushStatus]);
 
   useEffect(() => {
     if (user) {
