@@ -229,3 +229,40 @@ class Notification(BaseModel):
     related_user_name: Optional[str] = None
     is_read: bool = False
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+# Push Notification Models
+class PushSubscription(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    endpoint: str
+    keys: Dict[str, str]  # {"p256dh": "...", "auth": "..."}
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class PushSubscriptionCreate(BaseModel):
+    endpoint: str
+    keys: Dict[str, str]
+
+
+# Notification Preferences
+class NotificationPreferences(BaseModel):
+    email_crisis_alerts: bool = True
+    email_mood_reminders: bool = False
+    email_weekly_summary: bool = True
+    push_enabled: bool = True
+    push_crisis_alerts: bool = True
+    push_mood_reminders: bool = True
+    push_caregiver_updates: bool = True
+
+
+class NotificationPreferencesUpdate(BaseModel):
+    email_crisis_alerts: Optional[bool] = None
+    email_mood_reminders: Optional[bool] = None
+    email_weekly_summary: Optional[bool] = None
+    push_enabled: Optional[bool] = None
+    push_crisis_alerts: Optional[bool] = None
+    push_mood_reminders: Optional[bool] = None
+    push_caregiver_updates: Optional[bool] = None
