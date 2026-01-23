@@ -627,30 +627,32 @@ const Caregivers = () => {
                 )}
 
                 {/* Recent Mood Logs */}
-                <div className="bg-white rounded-xl shadow-md p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                  <h3 className={`text-lg font-semibold mb-4 flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     <Calendar className="h-5 w-5 mr-2 text-blue-500" />
                     Recent Mood Logs
                   </h3>
                   
                   {patientData.moodLogs.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No mood logs available</p>
+                    <p className={`text-center py-8 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>No mood logs available</p>
                   ) : (
                     <div className="space-y-2">
                       {patientData.moodLogs.map((log) => (
-                        <div key={log.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div key={log.id} className={`flex items-center justify-between p-3 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
                           <div className="flex items-center">
                             <span className={`px-3 py-1 rounded-full text-sm font-bold ${getMoodColor(log.mood_rating)}`}>
                               {log.mood_rating}/10
                             </span>
-                            <span className="ml-3 text-gray-600">{log.date}</span>
+                            <span className={`ml-3 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{log.date}</span>
                             {log.mood_tag && (
-                              <span className="ml-2 text-sm text-gray-500 capitalize">• {log.mood_tag}</span>
+                              <span className={`ml-2 text-sm capitalize ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>• {log.mood_tag}</span>
                             )}
                           </div>
                           {log.medication_taken !== undefined && (
                             <span className={`text-xs px-2 py-1 rounded ${
-                              log.medication_taken ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                              log.medication_taken 
+                                ? isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-100 text-green-700'
+                                : isDark ? 'bg-gray-600 text-gray-400' : 'bg-gray-100 text-gray-500'
                             }`}>
                               {log.medication_taken ? 'Meds taken' : 'Meds missed'}
                             </span>
