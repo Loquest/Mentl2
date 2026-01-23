@@ -70,9 +70,9 @@ const DietarySuggestions = ({ compact = false }) => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-md p-6" data-testid="dietary-suggestions-loading">
+      <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`} data-testid="dietary-suggestions-loading">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+          <h2 className={`text-lg font-semibold flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
             <Utensils className="h-5 w-5 mr-2 text-green-500" />
             Mood-Based Nutrition
           </h2>
@@ -86,19 +86,19 @@ const DietarySuggestions = ({ compact = false }) => {
 
   if (error && !suggestion) {
     return (
-      <div className="bg-white rounded-xl shadow-md p-6" data-testid="dietary-suggestions-error">
+      <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`} data-testid="dietary-suggestions-error">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+          <h2 className={`text-lg font-semibold flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
             <Utensils className="h-5 w-5 mr-2 text-green-500" />
             Mood-Based Nutrition
           </h2>
         </div>
         <div className="text-center py-6">
-          <AlertCircle className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-          <p className="text-gray-500 text-sm">{error}</p>
+          <AlertCircle className={`h-10 w-10 mx-auto mb-2 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{error}</p>
           <button
             onClick={handleRefresh}
-            className="mt-3 text-sm text-green-600 hover:text-green-700 font-medium"
+            className="mt-3 text-sm text-green-500 hover:text-green-400 font-medium"
           >
             Try again
           </button>
