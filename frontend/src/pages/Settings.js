@@ -454,6 +454,155 @@ const Settings = () => {
             </div>
           )}
 
+          {/* Notifications Tab */}
+          {activeTab === 'notifications' && (
+            <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+              <div className="flex items-center mb-6">
+                <div className="bg-gradient-to-br from-blue-500 to-cyan-500 p-3 rounded-full mr-4">
+                  <Bell className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Push Notifications</h2>
+                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Manage how you receive alerts and reminders</p>
+                </div>
+              </div>
+
+              {!pushSupported ? (
+                <div className={`p-4 rounded-lg border ${isDark ? 'bg-yellow-900/20 border-yellow-700' : 'bg-yellow-50 border-yellow-200'}`}>
+                  <div className="flex items-start">
+                    <AlertCircle className="h-5 w-5 text-yellow-500 mr-2 mt-0.5" />
+                    <div>
+                      <p className={`font-medium ${isDark ? 'text-yellow-400' : 'text-yellow-800'}`}>
+                        Push notifications not supported
+                      </p>
+                      <p className={`text-sm mt-1 ${isDark ? 'text-yellow-500' : 'text-yellow-700'}`}>
+                        Your browser doesn&apos;t support push notifications. Try using a modern browser like Chrome, Firefox, or Safari.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Permission Status */}
+                  <div className={`p-4 rounded-lg border ${
+                    pushPermission === 'granted' 
+                      ? isDark ? 'bg-green-900/20 border-green-700' : 'bg-green-50 border-green-200'
+                      : pushPermission === 'denied'
+                      ? isDark ? 'bg-red-900/20 border-red-700' : 'bg-red-50 border-red-200'
+                      : isDark ? 'bg-blue-900/20 border-blue-700' : 'bg-blue-50 border-blue-200'
+                  }`}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start">
+                        {pushPermission === 'granted' ? (
+                          <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                        ) : pushPermission === 'denied' ? (
+                          <BellOff className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
+                        ) : (
+                          <Bell className="h-5 w-5 text-blue-500 mr-2 mt-0.5" />
+                        )}
+                        <div>
+                          <p className={`font-medium ${
+                            pushPermission === 'granted' 
+                              ? isDark ? 'text-green-400' : 'text-green-800'
+                              : pushPermission === 'denied'
+                              ? isDark ? 'text-red-400' : 'text-red-800'
+                              : isDark ? 'text-blue-400' : 'text-blue-800'
+                          }`}>
+                            {pushPermission === 'granted' 
+                              ? 'Notifications enabled'
+                              : pushPermission === 'denied'
+                              ? 'Notifications blocked'
+                              : 'Notifications not enabled'}
+                          </p>
+                          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {pushPermission === 'granted' 
+                              ? pushSubscribed 
+                                ? 'You will receive push notifications for alerts and reminders.'
+                                : 'Permission granted but not subscribed to notifications.'
+                              : pushPermission === 'denied'
+                              ? 'You have blocked notifications. Enable them in your browser settings.'
+                              : 'Enable notifications to receive important alerts and reminders.'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Toggle Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    {pushPermission !== 'denied' && !pushSubscribed && (
+                      <button
+                        type="button"
+                        onClick={handleEnablePushNotifications}
+                        disabled={notificationLoading}
+                        className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-cyan-600 transition disabled:opacity-50 flex items-center justify-center"
+                        data-testid="enable-notifications-btn"
+                      >
+                        {notificationLoading ? (
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        ) : (
+                          <Bell className="h-5 w-5 mr-2" />
+                        )}
+                        Enable Notifications
+                      </button>
+                    )}
+
+                    {pushSubscribed && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={handleTestNotification}
+                          className={`flex-1 border-2 py-3 rounded-lg font-semibold transition flex items-center justify-center ${
+                            isDark ? 'border-blue-600 text-blue-400 hover:bg-blue-900/20' : 'border-blue-500 text-blue-600 hover:bg-blue-50'
+                          }`}
+                          data-testid="test-notification-btn"
+                        >
+                          <Bell className="h-5 w-5 mr-2" />
+                          Test Notification
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleDisablePushNotifications}
+                          disabled={notificationLoading}
+                          className={`flex-1 border-2 py-3 rounded-lg font-semibold transition flex items-center justify-center ${
+                            isDark ? 'border-red-600 text-red-400 hover:bg-red-900/20' : 'border-red-500 text-red-600 hover:bg-red-50'
+                          }`}
+                          data-testid="disable-notifications-btn"
+                        >
+                          {notificationLoading ? (
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-500 mr-2"></div>
+                          ) : (
+                            <BellOff className="h-5 w-5 mr-2" />
+                          )}
+                          Disable Notifications
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Notification Types Info */}
+                  <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                    <h3 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>What you&apos;ll receive:</h3>
+                    <ul className="space-y-2">
+                      <li className={`flex items-start text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <Check className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                        <span><strong>Crisis Alerts:</strong> Notifications when a caregiver is alerted about your well-being</span>
+                      </li>
+                      <li className={`flex items-start text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <Check className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                        <span><strong>Caregiver Updates:</strong> When someone accepts your caregiver invitation</span>
+                      </li>
+                      <li className={`flex items-start text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <Check className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                        <span><strong>Mood Reminders:</strong> Gentle reminders to log your mood (coming soon)</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Privacy & Info Section */}
           <div className={`rounded-xl p-6 border ${isDark ? 'bg-purple-900/20 border-purple-800' : 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200'}`}>
             <h2 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Privacy & Security</h2>
