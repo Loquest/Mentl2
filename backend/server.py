@@ -2099,6 +2099,113 @@ async def mark_all_notifications_read(user_id: str = Depends(get_current_user_id
     return {"message": "All notifications marked as read"}
 
 
+# ============= NOTIFICATION PREFERENCES ROUTES =============
+
+@api_router.get("/users/me/notification-preferences")
+async def get_notification_preferences(user_id: str = Depends(get_current_user_id)):
+    """Get user's notification preferences"""
+    user_doc = await users_collection.find_one({"id": user_id}, {"_id": 0})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    default_prefs = {
+        "email_crisis_alerts": True,
+        "email_mood_reminders": False,
+        "email_weekly_summary": True,
+        "push_enabled": True,
+        "push_crisis_alerts": True,
+        "push_mood_reminders": True,
+        "push_caregiver_updates": True
+    }
+    
+    prefs = user_doc.get('notification_preferences', default_prefs)
+    return {"notification_preferences": {**default_prefs, **prefs}}
+
+
+@api_router.put("/users/me/notification-preferences")
+async def update_notification_preferences(
+    prefs: NotificationPreferencesUpdate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Update user's notification preferences"""
+    update_data = {k: v for k, v in prefs.model_dump().items() if v is not None}
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No data to update")
+    
+    user_doc = await users_collection.find_one({"id": user_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    existing_prefs = user_doc.get('notification_preferences', {})
+    existing_prefs.update(update_data)
+    
+    await users_collection.update_one(
+        {"id": user_id},
+        {"$set": {"notification_preferences": existing_prefs}}
+    )
+    
+    return {"message": "Notification preferences updated", "notification_preferences": existing_prefs}
+
+
+# ============= PUSH SUBSCRIPTION ROUTES =============
+
+@api_router.post("/push/subscribe")
+async def subscribe_push(
+    subscription: PushSubscriptionCreate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Subscribe to push notifications"""
+    from models import PushSubscription
+    
+    # Check if subscription already exists
+    existing = await push_subscriptions_collection.find_one({
+        "user_id": user_id,
+        "endpoint": subscription.endpoint
+    })
+    
+    if existing:
+        return {"message": "Already subscribed", "subscription_id": existing['id']}
+    
+    push_sub = PushSubscription(
+        user_id=user_id,
+        endpoint=subscription.endpoint,
+        keys=subscription.keys
+    )
+    
+    sub_dict = push_sub.model_dump()
+    sub_dict['created_at'] = sub_dict['created_at'].isoformat()
+    
+    await push_subscriptions_collection.insert_one(sub_dict)
+    
+    return {"message": "Subscribed to push notifications", "subscription_id": push_sub.id}
+
+
+@api_router.delete("/push/unsubscribe")
+async def unsubscribe_push(
+    endpoint: str,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Unsubscribe from push notifications"""
+    result = await push_subscriptions_collection.delete_one({
+        "user_id": user_id,
+        "endpoint": endpoint
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+    
+    return {"message": "Unsubscribed from push notifications"}
+
+
+@api_router.get("/push/vapid-public-key")
+async def get_vapid_public_key():
+    """Get VAPID public key for push notification setup"""
+    # In production, generate and store VAPID keys
+    # For now, return a placeholder
+    return {"publicKey": os.getenv("VAPID_PUBLIC_KEY", "")}
+
+
 # Health check route
 @api_router.get("/")
 async def root():
