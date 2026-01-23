@@ -665,11 +665,11 @@ const Caregivers = () => {
 
                 {/* Common Symptoms */}
                 {patientData.analytics.most_common_symptoms?.length > 0 && (
-                  <div className="bg-white rounded-xl shadow-md p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Most Common Symptoms</h3>
+                  <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                    <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Most Common Symptoms</h3>
                     <div className="flex flex-wrap gap-2">
                       {patientData.analytics.most_common_symptoms.map((symptom, idx) => (
-                        <span key={idx} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
+                        <span key={idx} className={`px-3 py-1 rounded-full text-sm ${isDark ? 'bg-purple-900/50 text-purple-400' : 'bg-purple-100 text-purple-700'}`}>
                           {symptom.symptom.replace(/_/g, ' ')} ({symptom.count})
                         </span>
                       ))}
