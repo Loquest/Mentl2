@@ -19,7 +19,7 @@ from models import (
     CaregiverInvitation, CaregiverInvitationCreate, CaregiverRelationship,
     CaregiverPermissionUpdate, Notification,
     DietaryPreferences, DietaryPreferencesUpdate, DietarySuggestionRequest, DietarySuggestion,
-    PushSubscription, NotificationPreferences
+    PushSubscription, PushSubscriptionCreate, NotificationPreferences, NotificationPreferencesUpdate
 )
 from auth import (
     get_password_hash, verify_password, create_access_token, get_current_user_id
