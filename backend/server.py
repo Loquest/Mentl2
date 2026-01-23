@@ -820,9 +820,6 @@ Provide exactly 4-5 suggestions in valid JSON format."""
         ai_response = await chat.send_message(user_message)
         
         # Parse AI response as JSON
-        import json
-        import re
-        
         # Try to extract JSON from response (in case AI adds markdown)
         json_match = re.search(r'\[.*\]', ai_response, re.DOTALL)
         if json_match:
