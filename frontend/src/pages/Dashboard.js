@@ -296,13 +296,13 @@ const Dashboard = () => {
             </div>
 
             {/* Caregiver Network Section */}
-            <div className="bg-white rounded-xl shadow-md p-6" data-testid="caregiver-network-card">
+            <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`} data-testid="caregiver-network-card">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                <h2 className={`text-lg font-semibold flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <Users className="h-5 w-5 mr-2 text-pink-500" />
                   Caregiver Network
                 </h2>
-                <Link to="/caregivers" className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center">
+                <Link to="/caregivers" className="text-sm text-purple-500 hover:text-purple-400 font-medium flex items-center">
                   Manage
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Link>
@@ -314,15 +314,15 @@ const Dashboard = () => {
                   {caregiverData.pendingInvitations.length > 0 && (
                     <Link
                       to="/caregivers"
-                      className="block p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition"
+                      className={`block p-3 rounded-lg transition border ${isDark ? 'bg-blue-900/20 border-blue-800 hover:bg-blue-900/30' : 'bg-blue-50 border-blue-200 hover:bg-blue-100'}`}
                     >
                       <div className="flex items-center">
-                        <Bell className="h-5 w-5 text-blue-600 mr-3" />
+                        <Bell className="h-5 w-5 text-blue-500 mr-3" />
                         <div>
-                          <p className="font-medium text-blue-800">
+                          <p className={`font-medium ${isDark ? 'text-blue-400' : 'text-blue-800'}`}>
                             {caregiverData.pendingInvitations.length} Pending Invitation{caregiverData.pendingInvitations.length > 1 ? 's' : ''}
                           </p>
-                          <p className="text-sm text-blue-600">Someone wants you to be their caregiver</p>
+                          <p className={`text-sm ${isDark ? 'text-blue-500' : 'text-blue-600'}`}>Someone wants you to be their caregiver</p>
                         </div>
                       </div>
                     </Link>
@@ -330,26 +330,26 @@ const Dashboard = () => {
 
                   {/* Stats Grid */}
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-100">
+                    <div className={`p-4 rounded-lg border ${isDark ? 'bg-purple-900/20 border-purple-800' : 'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-100'}`}>
                       <div className="flex items-center mb-2">
-                        <Users className="h-4 w-4 text-purple-600 mr-2" />
-                        <span className="text-sm text-gray-600">My Caregivers</span>
+                        <Users className="h-4 w-4 text-purple-500 mr-2" />
+                        <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>My Caregivers</span>
                       </div>
-                      <p className="text-2xl font-bold text-purple-600">{caregiverData.caregivers.length}</p>
+                      <p className="text-2xl font-bold text-purple-500">{caregiverData.caregivers.length}</p>
                     </div>
-                    <div className="p-4 bg-gradient-to-br from-pink-50 to-red-50 rounded-lg border border-pink-100">
+                    <div className={`p-4 rounded-lg border ${isDark ? 'bg-pink-900/20 border-pink-800' : 'bg-gradient-to-br from-pink-50 to-red-50 border-pink-100'}`}>
                       <div className="flex items-center mb-2">
-                        <Heart className="h-4 w-4 text-pink-600 mr-2" />
-                        <span className="text-sm text-gray-600">People I Care For</span>
+                        <Heart className="h-4 w-4 text-pink-500 mr-2" />
+                        <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>People I Care For</span>
                       </div>
-                      <p className="text-2xl font-bold text-pink-600">{caregiverData.patients.length}</p>
+                      <p className="text-2xl font-bold text-pink-500">{caregiverData.patients.length}</p>
                     </div>
                   </div>
 
                   {/* Quick Actions */}
                   {caregiverData.caregivers.length === 0 && caregiverData.patients.length === 0 && caregiverData.pendingInvitations.length === 0 && (
                     <div className="text-center py-4">
-                      <p className="text-gray-500 text-sm mb-3">Connect with trusted caregivers or family members</p>
+                      <p className={`text-sm mb-3 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Connect with trusted caregivers or family members</p>
                       <Link
                         to="/caregivers"
                         className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-sm font-semibold hover:from-purple-600 hover:to-pink-600 transition"
@@ -364,28 +364,28 @@ const Dashboard = () => {
                   {(caregiverData.caregivers.length > 0 || caregiverData.patients.length > 0) && (
                     <div className="space-y-2">
                       {caregiverData.caregivers.slice(0, 2).map((caregiver) => (
-                        <div key={caregiver.id} className="flex items-center p-2 bg-gray-50 rounded-lg">
+                        <div key={caregiver.id} className={`flex items-center p-2 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
                           <div className="bg-purple-500 w-8 h-8 rounded-full flex items-center justify-center mr-3">
                             <span className="text-white text-sm font-bold">
                               {caregiver.caregiver_name?.charAt(0).toUpperCase() || '?'}
                             </span>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">{caregiver.caregiver_name}</p>
-                            <p className="text-xs text-gray-500">Caregiver</p>
+                            <p className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{caregiver.caregiver_name}</p>
+                            <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Caregiver</p>
                           </div>
                         </div>
                       ))}
                       {caregiverData.patients.slice(0, 2).map((patient) => (
-                        <div key={patient.id} className="flex items-center p-2 bg-gray-50 rounded-lg">
+                        <div key={patient.id} className={`flex items-center p-2 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
                           <div className="bg-pink-500 w-8 h-8 rounded-full flex items-center justify-center mr-3">
                             <span className="text-white text-sm font-bold">
                               {patient.patient_name?.charAt(0).toUpperCase() || '?'}
                             </span>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">{patient.patient_name}</p>
-                            <p className="text-xs text-gray-500">You care for them</p>
+                            <p className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{patient.patient_name}</p>
+                            <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>You care for them</p>
                           </div>
                         </div>
                       ))}
