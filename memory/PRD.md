@@ -99,11 +99,11 @@ Build a comprehensive Mental Health Companion App for individuals with Bipolar, 
 ### 🔄 In Progress
 - None
 
-### 📋 Backlog (P1 - High Priority)
-- [ ] Full dark mode support for all content pages (Dashboard, Insights, etc.)
-- [ ] Web Push notification service worker implementation
+### ✅ Recently Completed (January 2025)
+- [x] Full dark mode support for all pages (Dashboard, Insights, Chat, Settings, etc.) - VERIFIED
+- [x] Web Push notification service worker and Settings UI implementation - VERIFIED
 
-### 📋 Backlog (P2 - Medium Priority)
+### 📋 Backlog (P1 - High Priority)
 - [ ] Weekly mood summary email reports
 - [ ] Meal reminder notifications
 
