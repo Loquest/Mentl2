@@ -19,6 +19,14 @@
         Learn how to configure a non-root public URL by running `npm run build`.
         -->
         <title>Mentl | Mental Health Companion</title>
+        <style>
+            /* Move Emergent badge above mobile bottom navigation */
+            @media (max-width: 1023px) {
+                #emergent-badge {
+                    bottom: 80px !important;
+                }
+            }
+        </style>
         <script src="https://assets.emergent.sh/scripts/emergent-main.js"></script>
         <!--
         These two scripts have been added for the Visual Edits, please do not edit or remove them
