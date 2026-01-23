@@ -20,19 +20,17 @@ const Register = () => {
   const [conditions, setConditions] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isDark, setIsDark] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
+  // Initialize dark mode from localStorage/system preference
+  const getInitialDarkMode = () => {
     const savedTheme = localStorage.getItem('theme');
     const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const shouldBeDark = savedTheme === 'dark' || (!savedTheme && systemDark);
-    if (shouldBeDark) {
-      setIsDark(true);
-    }
-  }, []);
+    return savedTheme === 'dark' || (!savedTheme && systemDark);
+  };
+  const [isDark] = useState(getInitialDarkMode);
 
   const handleStep1Submit = (e) => {
     e.preventDefault();
