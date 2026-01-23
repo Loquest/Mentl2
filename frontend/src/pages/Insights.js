@@ -356,16 +356,16 @@ const Insights = () => {
         {activeTab === 'patterns' && (
           <div className="space-y-6">
             {/* Identified Patterns */}
-            <div className="bg-white rounded-xl shadow-md p-6">
+            <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
               <button 
                 onClick={() => toggleSection('patterns')}
                 className="w-full flex items-center justify-between"
               >
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                <h2 className={`text-lg font-semibold flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <Brain className="h-5 w-5 mr-2 text-purple-500" />
                   Identified Patterns
                 </h2>
-                {expandedSections.patterns ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                {expandedSections.patterns ? <ChevronUp className={`h-5 w-5 ${isDark ? 'text-gray-400' : ''}`} /> : <ChevronDown className={`h-5 w-5 ${isDark ? 'text-gray-400' : ''}`} />}
               </button>
               
               {expandedSections.patterns && (
@@ -373,19 +373,19 @@ const Insights = () => {
                   {advancedAnalytics?.patterns?.length > 0 ? (
                     advancedAnalytics.patterns.map((pattern, idx) => (
                       <div key={idx} className={`p-4 rounded-lg border-l-4 ${
-                        pattern.pattern === 'low_mood_streak' ? 'bg-red-50 border-red-500' :
-                        pattern.pattern === 'high_variability' ? 'bg-yellow-50 border-yellow-500' :
-                        'bg-purple-50 border-purple-500'
+                        pattern.pattern === 'low_mood_streak' ? isDark ? 'bg-red-900/20 border-red-500' : 'bg-red-50 border-red-500' :
+                        pattern.pattern === 'high_variability' ? isDark ? 'bg-yellow-900/20 border-yellow-500' : 'bg-yellow-50 border-yellow-500' :
+                        isDark ? 'bg-purple-900/20 border-purple-500' : 'bg-purple-50 border-purple-500'
                       }`}>
                         <div className="flex items-start justify-between">
                           <div>
-                            <p className="font-semibold text-gray-900">{pattern.description}</p>
-                            <p className="text-sm text-gray-600 mt-1">{pattern.details}</p>
+                            <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{pattern.description}</p>
+                            <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{pattern.details}</p>
                           </div>
                           <span className={`text-xs px-2 py-1 rounded-full ${
-                            pattern.type === 'streak' ? 'bg-red-100 text-red-700' :
-                            pattern.type === 'variability' ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-purple-100 text-purple-700'
+                            pattern.type === 'streak' ? isDark ? 'bg-red-900/50 text-red-400' : 'bg-red-100 text-red-700' :
+                            pattern.type === 'variability' ? isDark ? 'bg-yellow-900/50 text-yellow-400' : 'bg-yellow-100 text-yellow-700' :
+                            isDark ? 'bg-purple-900/50 text-purple-400' : 'bg-purple-100 text-purple-700'
                           }`}>
                             {pattern.type}
                           </span>
@@ -393,10 +393,10 @@ const Insights = () => {
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <Brain className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                      <p>Not enough data to identify patterns yet.</p>
-                      <p className="text-sm mt-1">Keep logging to unlock pattern recognition!</p>
+                    <div className="text-center py-8">
+                      <Brain className={`h-12 w-12 mx-auto mb-3 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />
+                      <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>Not enough data to identify patterns yet.</p>
+                      <p className={`text-sm mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Keep logging to unlock pattern recognition!</p>
                     </div>
                   )}
                 </div>
@@ -405,8 +405,8 @@ const Insights = () => {
 
             {/* Day of Week Analysis Detail */}
             {advancedAnalytics?.day_of_week_analysis?.length > 0 && (
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Weekly Pattern Analysis</h2>
+              <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Weekly Pattern Analysis</h2>
                 <div className="grid grid-cols-7 gap-2">
                   {advancedAnalytics.day_of_week_analysis
                     .sort((a, b) => a.day_index - b.day_index)
@@ -414,19 +414,19 @@ const Insights = () => {
                       const moodLevel = day.average_mood >= 7 ? 'high' : day.average_mood >= 4 ? 'medium' : 'low';
                       return (
                         <div key={day.day} className={`p-3 rounded-lg text-center ${
-                          moodLevel === 'high' ? 'bg-green-100' :
-                          moodLevel === 'medium' ? 'bg-yellow-100' :
-                          'bg-red-100'
+                          moodLevel === 'high' ? isDark ? 'bg-green-900/30' : 'bg-green-100' :
+                          moodLevel === 'medium' ? isDark ? 'bg-yellow-900/30' : 'bg-yellow-100' :
+                          isDark ? 'bg-red-900/30' : 'bg-red-100'
                         }`}>
-                          <p className="text-xs font-medium text-gray-600">{day.day.slice(0, 3)}</p>
+                          <p className={`text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{day.day.slice(0, 3)}</p>
                           <p className={`text-2xl font-bold mt-1 ${
-                            moodLevel === 'high' ? 'text-green-700' :
-                            moodLevel === 'medium' ? 'text-yellow-700' :
-                            'text-red-700'
+                            moodLevel === 'high' ? isDark ? 'text-green-400' : 'text-green-700' :
+                            moodLevel === 'medium' ? isDark ? 'text-yellow-400' : 'text-yellow-700' :
+                            isDark ? 'text-red-400' : 'text-red-700'
                           }`}>
                             {day.average_mood}
                           </p>
-                          <p className="text-xs text-gray-500 mt-1">{day.log_count} logs</p>
+                          <p className={`text-xs mt-1 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{day.log_count} logs</p>
                         </div>
                       );
                     })}
@@ -439,8 +439,8 @@ const Insights = () => {
         {/* Triggers Tab */}
         {activeTab === 'triggers' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+              <h2 className={`text-lg font-semibold mb-4 flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 <AlertTriangle className="h-5 w-5 mr-2 text-orange-500" />
                 Identified Triggers
               </h2>
@@ -448,63 +448,63 @@ const Insights = () => {
               {advancedAnalytics?.triggers?.length > 0 ? (
                 <div className="space-y-4">
                   {advancedAnalytics.triggers.map((trigger, idx) => (
-                    <div key={idx} className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                    <div key={idx} className={`p-4 rounded-lg border ${isDark ? 'bg-orange-900/20 border-orange-800' : 'bg-orange-50 border-orange-200'}`}>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center">
                             <span className={`px-2 py-1 rounded text-xs font-medium mr-2 ${
-                              trigger.type === 'symptom' ? 'bg-purple-100 text-purple-700' :
-                              trigger.type === 'sleep' ? 'bg-blue-100 text-blue-700' :
-                              'bg-gray-100 text-gray-700'
+                              trigger.type === 'symptom' ? isDark ? 'bg-purple-900/50 text-purple-400' : 'bg-purple-100 text-purple-700' :
+                              trigger.type === 'sleep' ? isDark ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-100 text-blue-700' :
+                              isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-700'
                             }`}>
                               {trigger.type}
                             </span>
-                            <h3 className="font-semibold text-gray-900">{trigger.trigger}</h3>
+                            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{trigger.trigger}</h3>
                           </div>
-                          <p className="text-sm text-gray-600 mt-2">{trigger.description}</p>
+                          <p className={`text-sm mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{trigger.description}</p>
                         </div>
                         <div className="text-right ml-4">
-                          <p className={`text-2xl font-bold ${trigger.impact < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          <p className={`text-2xl font-bold ${trigger.impact < 0 ? 'text-red-500' : 'text-green-500'}`}>
                             {trigger.impact > 0 ? '+' : ''}{trigger.impact}
                           </p>
-                          <p className="text-xs text-gray-500">mood impact</p>
+                          <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>mood impact</p>
                         </div>
                       </div>
-                      <div className="mt-3 pt-3 border-t border-orange-200">
-                        <p className="text-xs text-gray-500">Observed {trigger.frequency} times</p>
+                      <div className={`mt-3 pt-3 border-t ${isDark ? 'border-orange-800' : 'border-orange-200'}`}>
+                        <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Observed {trigger.frequency} times</p>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Target className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p>No significant triggers identified yet.</p>
-                  <p className="text-sm mt-1">Continue logging to help identify patterns that affect your mood.</p>
+                <div className="text-center py-8">
+                  <Target className={`h-12 w-12 mx-auto mb-3 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />
+                  <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>No significant triggers identified yet.</p>
+                  <p className={`text-sm mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Continue logging to help identify patterns that affect your mood.</p>
                 </div>
               )}
             </div>
 
             {/* Common Symptoms Impact */}
             {advancedAnalytics?.symptom_mood_correlation?.length > 0 && (
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Symptom Impact on Mood</h2>
+              <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Symptom Impact on Mood</h2>
                 <div className="space-y-3">
                   {advancedAnalytics.symptom_mood_correlation.slice(0, 8).map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                    <div key={idx} className={`flex items-center justify-between py-2 border-b last:border-0 ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
                       <div className="flex items-center">
                         <div className={`w-3 h-3 rounded-full mr-3 ${
                           item.impact && item.impact < -1 ? 'bg-red-500' :
                           item.impact && item.impact < 0 ? 'bg-yellow-500' :
                           'bg-green-500'
                         }`}></div>
-                        <span className="text-sm font-medium text-gray-700">{item.symptom}</span>
+                        <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{item.symptom}</span>
                       </div>
                       <div className="flex items-center space-x-4">
-                        <span className="text-sm text-gray-500">{item.occurrence_count}x</span>
+                        <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{item.occurrence_count}x</span>
                         {item.impact !== null && (
                           <span className={`text-sm font-bold ${
-                            item.impact < 0 ? 'text-red-600' : 'text-green-600'
+                            item.impact < 0 ? 'text-red-500' : 'text-green-500'
                           }`}>
                             {item.impact > 0 ? '+' : ''}{item.impact}
                           </span>
