@@ -601,18 +601,22 @@ const Caregivers = () => {
 
                 {/* Concerns */}
                 {patientData.analytics.recent_concerns?.length > 0 && (
-                  <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-red-800 mb-4 flex items-center">
+                  <div className={`rounded-xl p-6 border ${isDark ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-200'}`}>
+                    <h3 className={`text-lg font-semibold mb-4 flex items-center ${isDark ? 'text-red-400' : 'text-red-800'}`}>
                       <AlertCircle className="h-5 w-5 mr-2" />
                       Recent Concerns
                     </h3>
                     <div className="space-y-2">
                       {patientData.analytics.recent_concerns.map((concern, idx) => (
                         <div key={idx} className={`p-3 rounded-lg ${
-                          concern.severity === 'high' ? 'bg-red-100' : 'bg-yellow-100'
+                          concern.severity === 'high' 
+                            ? isDark ? 'bg-red-900/40' : 'bg-red-100'
+                            : isDark ? 'bg-yellow-900/40' : 'bg-yellow-100'
                         }`}>
                           <p className={`font-medium ${
-                            concern.severity === 'high' ? 'text-red-800' : 'text-yellow-800'
+                            concern.severity === 'high' 
+                              ? isDark ? 'text-red-400' : 'text-red-800'
+                              : isDark ? 'text-yellow-400' : 'text-yellow-800'
                           }`}>
                             {concern.message}
                           </p>
