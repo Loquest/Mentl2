@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Heart, Check } from 'lucide-react';
+import OnboardingTutorial from '../components/OnboardingTutorial';
 
 const CONDITION_OPTIONS = [
   { id: 'bipolar', label: 'Bipolar Disorder', color: 'bg-blue-100 border-blue-300', darkColor: 'bg-blue-900/40 border-blue-700' },
