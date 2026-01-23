@@ -458,7 +458,6 @@ def parse_dietary_response(response: str, suggestion_type: str) -> dict:
     """Parse AI response into structured suggestion"""
     try:
         # Try to extract JSON from response
-        import re
         json_match = re.search(r'\{[\s\S]*\}', response)
         if json_match:
             suggestion_data = json.loads(json_match.group())
