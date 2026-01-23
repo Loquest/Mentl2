@@ -110,15 +110,15 @@ const DietarySuggestions = ({ compact = false }) => {
   // Compact version for dashboard
   if (compact && suggestion) {
     return (
-      <div className="bg-white rounded-xl shadow-md p-6" data-testid="dietary-suggestions-compact">
+      <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`} data-testid="dietary-suggestions-compact">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+          <h2 className={`text-lg font-semibold flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
             <Utensils className="h-5 w-5 mr-2 text-green-500" />
             Nutrition Suggestion
           </h2>
           <Link 
             to="/nutrition" 
-            className="text-sm text-green-600 hover:text-green-700 font-medium flex items-center"
+            className="text-sm text-green-500 hover:text-green-400 font-medium flex items-center"
           >
             View All
             <ChevronRight className="h-4 w-4 ml-1" />
@@ -128,32 +128,32 @@ const DietarySuggestions = ({ compact = false }) => {
         {!prefsConfigured && (
           <Link
             to="/settings"
-            className="block mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition"
+            className={`block mb-4 p-3 rounded-lg transition ${isDark ? 'bg-amber-900/30 border border-amber-700 hover:bg-amber-900/50' : 'bg-amber-50 border border-amber-200 hover:bg-amber-100'}`}
           >
             <div className="flex items-center">
-              <Sparkles className="h-5 w-5 text-amber-600 mr-2" />
+              <Sparkles className="h-5 w-5 text-amber-500 mr-2" />
               <div>
-                <p className="text-sm font-medium text-amber-800">Set up dietary preferences</p>
-                <p className="text-xs text-amber-600">Get personalized suggestions</p>
+                <p className={`text-sm font-medium ${isDark ? 'text-amber-300' : 'text-amber-800'}`}>Set up dietary preferences</p>
+                <p className={`text-xs ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>Get personalized suggestions</p>
               </div>
             </div>
           </Link>
         )}
 
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 border border-green-100">
+        <div className={`rounded-lg p-4 ${isDark ? 'bg-gradient-to-br from-green-900/30 to-emerald-900/30 border border-green-800' : 'bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100'}`}>
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center mb-2">
                 {getTimeIcon()}
-                <span className="text-xs text-gray-500 ml-2 capitalize">{getTimeOfDay()} suggestion</span>
+                <span className={`text-xs ml-2 capitalize ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{getTimeOfDay()} suggestion</span>
               </div>
-              <h3 className="font-semibold text-gray-900 mb-1">{suggestion.title}</h3>
-              <p className="text-sm text-gray-600 line-clamp-2">{suggestion.description}</p>
+              <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{suggestion.title}</h3>
+              <p className={`text-sm line-clamp-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{suggestion.description}</p>
               
               {suggestion.mood_benefits?.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
                   {suggestion.mood_benefits.slice(0, 2).map((benefit, idx) => (
-                    <span key={idx} className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                    <span key={idx} className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-100 text-green-700'}`}>
                       {benefit}
                     </span>
                   ))}
