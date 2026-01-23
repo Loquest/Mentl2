@@ -95,48 +95,48 @@ const Dashboard = () => {
       <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" data-testid="dashboard">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user?.name}!</h1>
-          <p className="mt-2 text-gray-600">How are you feeling today?</p>
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Welcome back, {user?.name}!</h1>
+          <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>How are you feeling today?</p>
         </div>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Link
             to="/log-mood"
-            className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition border-2 border-transparent hover:border-purple-300"
+            className={`rounded-xl shadow-md p-6 hover:shadow-lg transition border-2 border-transparent hover:border-purple-300 ${isDark ? 'bg-gray-800' : 'bg-white'}`}
             data-testid="quick-action-log-mood"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Log Mood</p>
-                <p className="text-2xl font-bold text-purple-600 mt-1">Today</p>
+                <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Log Mood</p>
+                <p className="text-2xl font-bold text-purple-500 mt-1">Today</p>
               </div>
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <PenLine className="h-6 w-6 text-purple-600" />
+              <div className={`p-3 rounded-lg ${isDark ? 'bg-purple-900/50' : 'bg-purple-100'}`}>
+                <PenLine className="h-6 w-6 text-purple-500" />
               </div>
             </div>
             {todayLog ? (
-              <div className="mt-4 text-sm text-green-600 font-medium">✓ Logged</div>
+              <div className="mt-4 text-sm text-green-500 font-medium">✓ Logged</div>
             ) : (
-              <div className="mt-4 text-sm text-gray-500">Not logged yet</div>
+              <div className={`mt-4 text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Not logged yet</div>
             )}
           </Link>
 
           <Link
             to="/chat"
-            className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition border-2 border-transparent hover:border-pink-300"
+            className={`rounded-xl shadow-md p-6 hover:shadow-lg transition border-2 border-transparent hover:border-pink-300 ${isDark ? 'bg-gray-800' : 'bg-white'}`}
             data-testid="quick-action-chat"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">AI Chat</p>
-                <p className="text-2xl font-bold text-pink-600 mt-1">Talk</p>
+                <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>AI Chat</p>
+                <p className="text-2xl font-bold text-pink-500 mt-1">Talk</p>
               </div>
-              <div className="bg-pink-100 p-3 rounded-lg">
-                <MessageCircle className="h-6 w-6 text-pink-600" />
+              <div className={`p-3 rounded-lg ${isDark ? 'bg-pink-900/50' : 'bg-pink-100'}`}>
+                <MessageCircle className="h-6 w-6 text-pink-500" />
               </div>
             </div>
-            <div className="mt-4 text-sm text-gray-500">Get support anytime</div>
+            <div className={`mt-4 text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Get support anytime</div>
           </Link>
 
           <Link
