@@ -47,6 +47,9 @@ const Settings = () => {
   const [pushPermission, setPushPermission] = useState('default');
   const [pushSubscribed, setPushSubscribed] = useState(false);
   const [notificationLoading, setNotificationLoading] = useState(false);
+  
+  // Tutorial State
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const checkPushStatus = useCallback(async () => {
     const supported = isPushSupported();
