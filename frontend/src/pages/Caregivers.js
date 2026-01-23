@@ -682,9 +682,9 @@ const Caregivers = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
               </div>
             ) : (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
-                <AlertCircle className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-                <p className="text-yellow-800">Unable to load patient data. Please try again.</p>
+              <div className={`rounded-xl p-6 text-center border ${isDark ? 'bg-yellow-900/20 border-yellow-800' : 'bg-yellow-50 border-yellow-200'}`}>
+                <AlertCircle className={`h-8 w-8 mx-auto mb-2 ${isDark ? 'text-yellow-400' : 'text-yellow-500'}`} />
+                <p className={isDark ? 'text-yellow-400' : 'text-yellow-800'}>Unable to load patient data. Please try again.</p>
               </div>
             )}
           </div>
