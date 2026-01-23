@@ -96,12 +96,21 @@ Build a comprehensive Mental Health Companion App for individuals with Bipolar, 
 - [x] Sidebar fully styled for dark mode
 - [x] Smooth theme transitions
 
+#### Onboarding Tutorial (January 2025)
+- [x] 4-slide carousel tutorial after registration
+- [x] Feature highlights: Mood Tracking, AI Chat, Insights, Caregivers
+- [x] Skip button and keyboard navigation (arrows, Esc)
+- [x] Dark mode support
+- [x] "View Tutorial" option in Settings > Help tab
+- [x] localStorage persistence (mentl_tutorial_completed)
+
 ### 🔄 In Progress
 - None
 
 ### ✅ Recently Completed (January 2025)
 - [x] Full dark mode support for all pages (Dashboard, Insights, Chat, Settings, etc.) - VERIFIED
 - [x] Web Push notification service worker and Settings UI implementation - VERIFIED
+- [x] Onboarding tutorial carousel with 4 slides - VERIFIED
 
 ### 📋 Backlog (P1 - High Priority)
 - [ ] Weekly mood summary email reports
