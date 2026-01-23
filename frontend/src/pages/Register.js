@@ -21,6 +21,7 @@ const Register = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
