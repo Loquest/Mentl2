@@ -18,6 +18,7 @@ content_collection = db.content
 caregiver_invitations_collection = db.caregiver_invitations
 caregiver_relationships_collection = db.caregiver_relationships
 notifications_collection = db.notifications
+push_subscriptions_collection = db.push_subscriptions
 
 async def close_db_connection():
     client.close()
