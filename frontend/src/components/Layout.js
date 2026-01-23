@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Heart, Home, PenLine, BarChart3, MessageCircle, BookOpen, Settings, LogOut, User, Users, Utensils } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import { Heart, Home, PenLine, BarChart3, MessageCircle, BookOpen, LogOut, User, Users, Utensils, Moon, Sun } from 'lucide-react';
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -23,16 +25,16 @@ const Layout = ({ children }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className={`min-h-screen transition-colors duration-200 ${isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50'}`}>
       {/* Sidebar - Desktop */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-white border-r border-gray-200 pt-5 pb-4 overflow-y-auto">
+        <div className={`flex flex-col flex-grow border-r pt-5 pb-4 overflow-y-auto transition-colors duration-200 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           {/* Logo */}
           <div className="flex items-center flex-shrink-0 px-4 mb-5">
             <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-2 rounded-lg">
               <Heart className="h-6 w-6 text-white" />
             </div>
-            <span className="ml-3 text-xl font-bold text-gray-900">Mentl</span>
+            <span className={`ml-3 text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Mentl</span>
           </div>
 
           {/* User Info */}
