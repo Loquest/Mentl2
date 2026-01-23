@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import api from '../utils/api';
 import { 
   Utensils, Clock, Leaf, Brain, ChefHat, Apple, Coffee, Moon,
@@ -7,6 +8,7 @@ import {
 } from 'lucide-react';
 
 const DietarySuggestions = ({ compact = false }) => {
+  const { isDark } = useTheme();
   const [suggestion, setSuggestion] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
