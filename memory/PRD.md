@@ -81,6 +81,21 @@ Build a comprehensive Mental Health Companion App for individuals with Bipolar, 
 - [x] Full Nutrition page with preferences management
 - [x] Navigation integration
 
+#### Email & Push Notifications (January 2025)
+- [x] Email notifications for caregiver crisis alerts (Resend integration)
+- [x] Crisis alert email templates with emergency resources
+- [x] Push notification subscription management
+- [x] Notification preferences settings (email & push toggles)
+- [x] API endpoints for notification preferences and push subscriptions
+
+#### Dark Mode Support (January 2025)
+- [x] Theme context with localStorage persistence
+- [x] System preference detection
+- [x] Dark mode toggle in sidebar
+- [x] Dark mode toggle in mobile header
+- [x] Sidebar fully styled for dark mode
+- [x] Smooth theme transitions
+
 ### 🔄 In Progress
 - None
 
