@@ -108,19 +108,25 @@ const Layout = ({ children }) => {
               className={`w-full group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition ${
                 location.pathname === '/settings'
                   ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                  : 'text-gray-700 hover:bg-purple-50 hover:text-purple-600'
+                  : isDark 
+                    ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    : 'text-gray-700 hover:bg-purple-50 hover:text-purple-600'
               }`}
               data-testid="profile-button"
             >
-              <User className={`mr-3 h-5 w-5 ${location.pathname === '/settings' ? 'text-white' : 'text-gray-500 group-hover:text-purple-600'}`} />
+              <User className={`mr-3 h-5 w-5 ${location.pathname === '/settings' ? 'text-white' : isDark ? 'text-gray-400' : 'text-gray-500 group-hover:text-purple-600'}`} />
               Profile
             </Link>
             <button
               onClick={handleLogout}
-              className="w-full group flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 transition"
+              className={`w-full group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition ${
+                isDark 
+                  ? 'text-gray-300 hover:bg-red-900/30 hover:text-red-400'
+                  : 'text-gray-700 hover:bg-red-50 hover:text-red-600'
+              }`}
               data-testid="logout-button"
             >
-              <LogOut className="mr-3 h-5 w-5 text-gray-500 group-hover:text-red-600" />
+              <LogOut className={`mr-3 h-5 w-5 ${isDark ? 'text-gray-400 group-hover:text-red-400' : 'text-gray-500 group-hover:text-red-600'}`} />
               Logout
             </button>
           </div>
