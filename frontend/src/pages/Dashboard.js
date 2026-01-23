@@ -141,36 +141,36 @@ const Dashboard = () => {
 
           <Link
             to="/insights"
-            className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition border-2 border-transparent hover:border-blue-300"
+            className={`rounded-xl shadow-md p-6 hover:shadow-lg transition border-2 border-transparent hover:border-blue-300 ${isDark ? 'bg-gray-800' : 'bg-white'}`}
             data-testid="quick-action-insights"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Insights</p>
-                <p className="text-2xl font-bold text-blue-600 mt-1">{analytics?.total_logs || 0}</p>
+                <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Insights</p>
+                <p className="text-2xl font-bold text-blue-500 mt-1">{analytics?.total_logs || 0}</p>
               </div>
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-blue-600" />
+              <div className={`p-3 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-100'}`}>
+                <TrendingUp className="h-6 w-6 text-blue-500" />
               </div>
             </div>
-            <div className="mt-4 text-sm text-gray-500">Logs tracked</div>
+            <div className={`mt-4 text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Logs tracked</div>
           </Link>
 
           <Link
             to="/library"
-            className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition border-2 border-transparent hover:border-green-300"
+            className={`rounded-xl shadow-md p-6 hover:shadow-lg transition border-2 border-transparent hover:border-green-300 ${isDark ? 'bg-gray-800' : 'bg-white'}`}
             data-testid="quick-action-library"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Library</p>
-                <p className="text-2xl font-bold text-green-600 mt-1">Learn</p>
+                <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Library</p>
+                <p className="text-2xl font-bold text-green-500 mt-1">Learn</p>
               </div>
-              <div className="bg-green-100 p-3 rounded-lg">
-                <BookOpen className="h-6 w-6 text-green-600" />
+              <div className={`p-3 rounded-lg ${isDark ? 'bg-green-900/50' : 'bg-green-100'}`}>
+                <BookOpen className="h-6 w-6 text-green-500" />
               </div>
             </div>
-            <div className="mt-4 text-sm text-gray-500">Resources & guides</div>
+            <div className={`mt-4 text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Resources & guides</div>
           </Link>
         </div>
 
@@ -178,16 +178,16 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Today's Mood */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-md p-6" data-testid="todays-mood-card">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Today&apos;s Mood</h2>
+            <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`} data-testid="todays-mood-card">
+              <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Today&apos;s Mood</h2>
               {todayLog ? (
                 <div className={`border-2 rounded-lg p-4 ${getMoodColor(todayLog.mood_rating)}`}>
                   <div className="flex items-center justify-between mb-3">
                     {getMoodEmoji(todayLog.mood_rating)}
-                    <span className="text-3xl font-bold text-gray-900">{todayLog.mood_rating}/10</span>
+                    <span className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{todayLog.mood_rating}/10</span>
                   </div>
                   {todayLog.mood_tag && (
-                    <p className="text-sm text-gray-700 font-medium capitalize">{todayLog.mood_tag}</p>
+                    <p className={`text-sm font-medium capitalize ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{todayLog.mood_tag}</p>
                   )}
                   {todayLog.notes && (
                     <p className="text-sm text-gray-600 mt-2 line-clamp-2">{todayLog.notes}</p>
