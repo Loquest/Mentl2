@@ -187,6 +187,16 @@ const Settings = () => {
     }
   };
 
+  // Tutorial overlay
+  if (showTutorial) {
+    return (
+      <OnboardingTutorial 
+        onComplete={() => setShowTutorial(false)} 
+        isDark={isDark} 
+      />
+    );
+  }
+
   return (
     <Layout>
       <div className="px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto" data-testid="settings-page">
