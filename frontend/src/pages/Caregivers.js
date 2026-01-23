@@ -580,22 +580,22 @@ const Caregivers = () => {
               <>
                 {/* Analytics Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-white rounded-xl shadow-md p-6">
-                    <p className="text-sm text-gray-500 mb-1">Average Mood (30 days)</p>
-                    <p className="text-3xl font-bold text-gray-900">{patientData.analytics.average_mood}/10</p>
+                  <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                    <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Average Mood (30 days)</p>
+                    <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{patientData.analytics.average_mood}/10</p>
                   </div>
-                  <div className="bg-white rounded-xl shadow-md p-6">
-                    <p className="text-sm text-gray-500 mb-1">Mood Trend</p>
+                  <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                    <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Mood Trend</p>
                     <div className="flex items-center">
                       {getTrendIcon(patientData.analytics.mood_trend)}
-                      <span className="text-xl font-bold text-gray-900 ml-2 capitalize">
+                      <span className={`text-xl font-bold ml-2 capitalize ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         {patientData.analytics.mood_trend}
                       </span>
                     </div>
                   </div>
-                  <div className="bg-white rounded-xl shadow-md p-6">
-                    <p className="text-sm text-gray-500 mb-1">Total Logs</p>
-                    <p className="text-3xl font-bold text-gray-900">{patientData.analytics.total_logs}</p>
+                  <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                    <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Total Logs</p>
+                    <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{patientData.analytics.total_logs}</p>
                   </div>
                 </div>
 
