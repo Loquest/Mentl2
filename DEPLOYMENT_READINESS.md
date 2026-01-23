@@ -226,8 +226,8 @@ All core features tested and operational:
 This application is ready for deployment via Emergent's native deployment feature.
 
 ### Access Information
-- **Frontend URL:** https://mood-tracker-272.preview.emergentagent.com
-- **Backend API:** https://mood-tracker-272.preview.emergentagent.com/api
+- **Frontend URL:** https://mentl-health.preview.emergentagent.com
+- **Backend API:** https://mentl-health.preview.emergentagent.com/api
 - **Test Account:** test@example.com / test123
 
 ---
