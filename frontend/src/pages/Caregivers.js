@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import Layout from '../components/Layout';
 import api from '../utils/api';
 import { 
@@ -10,6 +11,7 @@ import {
 
 const Caregivers = () => {
   const { user } = useAuth();
+  const { isDark } = useTheme();
   const [activeTab, setActiveTab] = useState('my-caregivers');
   
   // My Caregivers (as patient)
@@ -178,9 +180,9 @@ const Caregivers = () => {
   };
 
   const getMoodColor = (rating) => {
-    if (rating >= 7) return 'bg-green-100 text-green-800';
-    if (rating >= 4) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-red-100 text-red-800';
+    if (rating >= 7) return isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800';
+    if (rating >= 4) return isDark ? 'bg-yellow-900/30 text-yellow-400' : 'bg-yellow-100 text-yellow-800';
+    return isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800';
   };
 
   if (loading) {
@@ -189,7 +191,7 @@ const Caregivers = () => {
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading caregiver data...</p>
+            <p className={`mt-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Loading caregiver data...</p>
           </div>
         </div>
       </Layout>
@@ -201,13 +203,13 @@ const Caregivers = () => {
       <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto" data-testid="caregivers-page">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Caregiver Network</h1>
-          <p className="mt-2 text-gray-600">Connect with trusted caregivers and family members</p>
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Caregiver Network</h1>
+          <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Connect with trusted caregivers and family members</p>
         </div>
 
         {/* Success/Error Messages */}
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 flex items-center" data-testid="success-message">
+          <div className={`px-4 py-3 rounded-lg mb-6 flex items-center ${isDark ? 'bg-green-900/30 border border-green-700 text-green-400' : 'bg-green-50 border border-green-200 text-green-700'}`} data-testid="success-message">
             <Check className="h-5 w-5 mr-2" />
             {success}
             <button onClick={() => setSuccess('')} className="ml-auto">
@@ -217,7 +219,7 @@ const Caregivers = () => {
         )}
         
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center" data-testid="error-message">
+          <div className={`px-4 py-3 rounded-lg mb-6 flex items-center ${isDark ? 'bg-red-900/30 border border-red-700 text-red-400' : 'bg-red-50 border border-red-200 text-red-700'}`} data-testid="error-message">
             <AlertCircle className="h-5 w-5 mr-2" />
             {error}
             <button onClick={() => setError('')} className="ml-auto">
@@ -227,13 +229,13 @@ const Caregivers = () => {
         )}
 
         {/* Tab Navigation */}
-        <div className="flex space-x-2 mb-6 border-b border-gray-200 overflow-x-auto">
+        <div className={`flex space-x-2 mb-6 border-b overflow-x-auto ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
           <button
             onClick={() => { setActiveTab('my-caregivers'); setSelectedPatient(null); }}
             className={`px-6 py-3 font-semibold whitespace-nowrap transition ${
               activeTab === 'my-caregivers'
-                ? 'border-b-2 border-purple-500 text-purple-600'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'border-b-2 border-purple-500 text-purple-500'
+                : isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'
             }`}
             data-testid="my-caregivers-tab"
           >
@@ -244,8 +246,8 @@ const Caregivers = () => {
             onClick={() => { setActiveTab('my-patients'); setSelectedPatient(null); }}
             className={`px-6 py-3 font-semibold whitespace-nowrap transition ${
               activeTab === 'my-patients'
-                ? 'border-b-2 border-purple-500 text-purple-600'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'border-b-2 border-purple-500 text-purple-500'
+                : isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'
             }`}
             data-testid="my-patients-tab"
           >
