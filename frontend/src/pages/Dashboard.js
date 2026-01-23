@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import Layout from '../components/Layout';
 import ActivitySuggestions from '../components/ActivitySuggestions';
 import DietarySuggestions from '../components/DietarySuggestions';
@@ -9,6 +10,7 @@ import { PenLine, MessageCircle, TrendingUp, BookOpen, Smile, Meh, Frown, Calend
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { isDark } = useTheme();
   const [todayLog, setTodayLog] = useState(null);
   const [recentLogs, setRecentLogs] = useState([]);
   const [analytics, setAnalytics] = useState(null);
