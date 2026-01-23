@@ -134,32 +134,39 @@ const Layout = ({ children }) => {
       </div>
 
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-10">
+      <div className={`lg:hidden fixed top-0 left-0 right-0 z-10 border-b transition-colors duration-200 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center">
             <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-2 rounded-lg">
               <Heart className="h-5 w-5 text-white" />
             </div>
-            <span className="ml-2 text-lg font-bold text-gray-900">MindCare</span>
+            <span className={`ml-2 text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Mentl</span>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={toggleTheme}
+              className={`p-2 rounded-lg transition ${isDark ? 'text-yellow-400 hover:bg-gray-700' : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'}`}
+              data-testid="mobile-theme-toggle"
+            >
+              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
             <Link
               to="/caregivers"
-              className="p-2 text-gray-600 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition"
+              className={`p-2 rounded-lg transition ${isDark ? 'text-gray-400 hover:text-pink-400 hover:bg-gray-700' : 'text-gray-600 hover:text-pink-600 hover:bg-pink-50'}`}
               data-testid="mobile-caregivers-button"
             >
               <Users className="h-5 w-5" />
             </Link>
             <Link
               to="/settings"
-              className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition"
+              className={`p-2 rounded-lg transition ${isDark ? 'text-gray-400 hover:text-purple-400 hover:bg-gray-700' : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'}`}
               data-testid="mobile-profile-button"
             >
               <User className="h-5 w-5" />
             </Link>
             <button 
               onClick={handleLogout} 
-              className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+              className={`p-2 rounded-lg transition ${isDark ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700' : 'text-gray-600 hover:text-red-600 hover:bg-red-50'}`}
             >
               <LogOut className="h-5 w-5" />
             </button>
