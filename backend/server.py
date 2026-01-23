@@ -668,9 +668,6 @@ Provide ONLY valid JSON, no markdown."""
         ai_response = await chat.send_message(user_message)
         
         # Parse AI response as JSON
-        import json
-        import re
-        
         # Try to extract JSON from response
         json_match = re.search(r'\{.*\}', ai_response, re.DOTALL)
         if json_match:
