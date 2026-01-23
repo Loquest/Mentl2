@@ -461,19 +461,19 @@ const Caregivers = () => {
           <div className="space-y-6">
             {/* Received Invitations */}
             {receivedInvitations.length > 0 && (
-              <div className="bg-white rounded-xl shadow-md p-6 border-2 border-blue-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <div className={`rounded-xl shadow-md p-6 border-2 ${isDark ? 'bg-gray-800 border-blue-700' : 'bg-white border-blue-200'}`}>
+                <h3 className={`text-lg font-semibold mb-4 flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <Mail className="h-5 w-5 mr-2 text-blue-500" />
                   New Invitations
                 </h3>
                 <div className="space-y-3">
                   {receivedInvitations.map((inv) => (
-                    <div key={inv.id} className="p-4 bg-blue-50 border border-blue-200 rounded-lg" data-testid={`invitation-${inv.id}`}>
+                    <div key={inv.id} className={`p-4 rounded-lg border ${isDark ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-200'}`} data-testid={`invitation-${inv.id}`}>
                       <div className="flex items-start justify-between">
                         <div>
-                          <p className="font-medium text-gray-900">{inv.patient_name}</p>
-                          <p className="text-sm text-gray-500">{inv.patient_email}</p>
-                          <p className="text-sm text-blue-600 mt-1">Wants you to be their caregiver</p>
+                          <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{inv.patient_name}</p>
+                          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{inv.patient_email}</p>
+                          <p className={`text-sm mt-1 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>Wants you to be their caregiver</p>
                         </div>
                         <div className="flex gap-2">
                           <button
@@ -488,7 +488,7 @@ const Caregivers = () => {
                           <button
                             onClick={() => handleRejectInvitation(inv.id)}
                             disabled={actionLoading}
-                            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-300 transition flex items-center"
+                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                             data-testid={`reject-invite-${inv.id}`}
                           >
                             <X className="h-4 w-4 mr-1" />
@@ -503,17 +503,17 @@ const Caregivers = () => {
             )}
 
             {/* People I Care For */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+              <h3 className={`text-lg font-semibold mb-4 flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 <Heart className="h-5 w-5 mr-2 text-pink-500" />
                 People I Care For
               </h3>
               
               {patients.length === 0 ? (
                 <div className="text-center py-12">
-                  <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-2">You&apos;re not caring for anyone yet</p>
-                  <p className="text-sm text-gray-500">
+                  <Heart className={`h-16 w-16 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />
+                  <p className={`mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>You&apos;re not caring for anyone yet</p>
+                  <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                     When someone invites you as their caregiver, you&apos;ll see their invitation here
                   </p>
                 </div>
@@ -523,7 +523,7 @@ const Caregivers = () => {
                     <button
                       key={patient.id}
                       onClick={() => handleViewPatient(patient)}
-                      className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-left hover:border-purple-300 hover:shadow-md transition group"
+                      className={`p-4 border rounded-lg text-left transition group ${isDark ? 'bg-gray-700 border-gray-600 hover:border-purple-500 hover:shadow-md' : 'bg-gray-50 border-gray-200 hover:border-purple-300 hover:shadow-md'}`}
                       data-testid={`patient-card-${patient.id}`}
                     >
                       <div className="flex items-center justify-between">
@@ -534,11 +534,11 @@ const Caregivers = () => {
                             </span>
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">{patient.patient_name}</p>
-                            <p className="text-sm text-gray-500">{patient.patient_email}</p>
+                            <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{patient.patient_name}</p>
+                            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{patient.patient_email}</p>
                           </div>
                         </div>
-                        <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-purple-500 transition" />
+                        <ChevronRight className={`h-5 w-5 transition ${isDark ? 'text-gray-500 group-hover:text-purple-400' : 'text-gray-400 group-hover:text-purple-500'}`} />
                       </div>
                     </button>
                   ))}
