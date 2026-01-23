@@ -182,8 +182,8 @@ const Layout = ({ children }) => {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className={`lg:hidden fixed bottom-0 left-0 right-0 border-t z-10 transition-colors duration-200 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-        <div className="flex justify-around py-2">
+      <div className={`lg:hidden fixed bottom-0 left-0 right-0 border-t z-50 transition-colors duration-200 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className="flex justify-around py-2 pb-safe">
           {navigation.slice(0, 5).map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
