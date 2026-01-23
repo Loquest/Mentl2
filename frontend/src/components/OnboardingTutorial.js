@@ -98,13 +98,46 @@ const OnboardingTutorial = ({ onComplete, isDark = false }) => {
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'ArrowRight') handleNext();
-      if (e.key === 'ArrowLeft') handlePrev();
-      if (e.key === 'Escape') handleSkip();
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft' || e.key === 'Escape') {
+        e.preventDefault();
+      }
     };
+    
+    const handleKeyUp = (e) => {
+      if (e.key === 'ArrowRight') {
+        if (currentSlide === TUTORIAL_SLIDES.length - 1) {
+          localStorage.setItem('mentl_tutorial_completed', 'true');
+          onComplete();
+        } else if (!isAnimating) {
+          setDirection('next');
+          setIsAnimating(true);
+          setTimeout(() => {
+            setCurrentSlide(prev => prev + 1);
+            setIsAnimating(false);
+          }, 300);
+        }
+      }
+      if (e.key === 'ArrowLeft' && currentSlide > 0 && !isAnimating) {
+        setDirection('prev');
+        setIsAnimating(true);
+        setTimeout(() => {
+          setCurrentSlide(prev => prev - 1);
+          setIsAnimating(false);
+        }, 300);
+      }
+      if (e.key === 'Escape') {
+        localStorage.setItem('mentl_tutorial_completed', 'true');
+        onComplete();
+      }
+    };
+    
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentSlide, isAnimating]);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [currentSlide, isAnimating, onComplete]);
 
   return (
     <div 
