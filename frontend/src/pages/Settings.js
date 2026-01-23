@@ -252,6 +252,18 @@ const Settings = () => {
             <Bell className="h-4 w-4 inline mr-1" />
             Notifications
           </button>
+          <button
+            onClick={() => setActiveTab('help')}
+            className={`px-6 py-3 font-semibold whitespace-nowrap transition ${
+              activeTab === 'help'
+                ? 'border-b-2 border-purple-500 text-purple-500'
+                : isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'
+            }`}
+            data-testid="help-tab"
+          >
+            <HelpCircle className="h-4 w-4 inline mr-1" />
+            Help
+          </button>
         </div>
 
         {/* Profile Form */}
