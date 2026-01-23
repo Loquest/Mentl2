@@ -67,12 +67,23 @@ const Register = () => {
     const result = await register(name, email, password, conditions);
     
     if (result.success) {
-      navigate('/dashboard');
+      // Show tutorial for new users
+      setShowTutorial(true);
     } else {
       setError(result.error);
       setLoading(false);
     }
   };
+
+  const handleTutorialComplete = () => {
+    setShowTutorial(false);
+    navigate('/dashboard');
+  };
+
+  // Show tutorial overlay
+  if (showTutorial) {
+    return <OnboardingTutorial onComplete={handleTutorialComplete} isDark={isDark} />;
+  }
 
   return (
     <div className={`min-h-screen flex items-center justify-center px-4 py-12 ${isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50'}`}>
