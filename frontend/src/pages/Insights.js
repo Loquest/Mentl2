@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/Layout';
+import { useTheme } from '../context/ThemeContext';
 import api from '../utils/api';
 import { 
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
@@ -14,6 +15,7 @@ import {
 const COLORS = ['#8b5cf6', '#ec4899', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#84cc16', '#f97316', '#14b8a6'];
 
 const Insights = () => {
+  const { isDark } = useTheme();
   const [logs, setLogs] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [advancedAnalytics, setAdvancedAnalytics] = useState(null);
@@ -75,9 +77,9 @@ const Insights = () => {
   };
 
   const getTrendColor = (trend) => {
-    if (trend === 'improving') return 'bg-green-50 border-green-200 text-green-700';
-    if (trend === 'declining') return 'bg-red-50 border-red-200 text-red-700';
-    return 'bg-gray-50 border-gray-200 text-gray-700';
+    if (trend === 'improving') return isDark ? 'bg-green-900/30 border-green-700 text-green-400' : 'bg-green-50 border-green-200 text-green-700';
+    if (trend === 'declining') return isDark ? 'bg-red-900/30 border-red-700 text-red-400' : 'bg-red-50 border-red-200 text-red-700';
+    return isDark ? 'bg-gray-700 border-gray-600 text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-700';
   };
 
   const handleExport = () => {
@@ -108,7 +110,7 @@ const Insights = () => {
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Analyzing your data...</p>
+            <p className={`mt-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Analyzing your data...</p>
           </div>
         </div>
       </Layout>
@@ -120,9 +122,9 @@ const Insights = () => {
       <Layout>
         <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <div className="text-center py-12">
-            <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">No Data Yet</h2>
-            <p className="text-gray-600 mb-6">Start logging your mood to see insights and patterns</p>
+            <Calendar className={`h-16 w-16 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
+            <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>No Data Yet</h2>
+            <p className={`mb-6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Start logging your mood to see insights and patterns</p>
             <a
               href="/log-mood"
               className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transition"
@@ -144,13 +146,13 @@ const Insights = () => {
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Insights & Analytics</h1>
-              <p className="mt-2 text-gray-600">Advanced pattern recognition and trigger identification</p>
+              <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Insights & Analytics</h1>
+              <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Advanced pattern recognition and trigger identification</p>
             </div>
             <div className="mt-4 sm:mt-0 flex space-x-3">
               <button
                 onClick={handleExport}
-                className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                className={`flex items-center px-4 py-2 border rounded-lg transition ${isDark ? 'bg-gray-800 border-gray-700 hover:bg-gray-700 text-gray-300' : 'bg-white border-gray-300 hover:bg-gray-50'}`}
                 data-testid="export-button"
               >
                 <Download className="h-4 w-4 mr-2" />
@@ -170,7 +172,7 @@ const Insights = () => {
                 className={`px-4 py-2 rounded-lg font-medium transition ${
                   timeRange === days
                     ? 'bg-purple-500 text-white'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                    : isDark ? 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                 }`}
                 data-testid={`time-range-${days}`}
               >
@@ -181,7 +183,7 @@ const Insights = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex space-x-2 mb-6 border-b border-gray-200 overflow-x-auto">
+        <div className={`flex space-x-2 mb-6 border-b overflow-x-auto ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
           {[
             { id: 'overview', label: 'Overview', icon: Activity },
             { id: 'patterns', label: 'Patterns', icon: Brain },
@@ -193,8 +195,8 @@ const Insights = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center px-4 py-3 font-medium whitespace-nowrap transition ${
                 activeTab === tab.id
-                  ? 'border-b-2 border-purple-500 text-purple-600'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'border-b-2 border-purple-500 text-purple-500'
+                  : isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'
               }`}
               data-testid={`tab-${tab.id}`}
             >
@@ -209,43 +211,43 @@ const Insights = () => {
           <div className="space-y-6">
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-xl shadow-md p-6" data-testid="average-mood-card">
+              <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`} data-testid="average-mood-card">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-gray-600">Average Mood</p>
+                  <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Average Mood</p>
                   {getTrendIcon(analytics.mood_trend)}
                 </div>
-                <p className="text-4xl font-bold text-gray-900">{analytics.average_mood}<span className="text-2xl text-gray-500">/10</span></p>
-                <p className={`mt-2 text-sm font-medium capitalize ${getTrendColor(analytics.mood_trend)} px-3 py-1 rounded-full inline-block`}>
+                <p className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{analytics.average_mood}<span className={`text-2xl ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>/10</span></p>
+                <p className={`mt-2 text-sm font-medium capitalize ${getTrendColor(analytics.mood_trend)} px-3 py-1 rounded-full inline-block border`}>
                   {analytics.mood_trend}
                 </p>
               </div>
 
-              <div className="bg-white rounded-xl shadow-md p-6" data-testid="total-logs-card">
-                <p className="text-sm font-medium text-gray-600 mb-2">Total Logs</p>
-                <p className="text-4xl font-bold text-gray-900">{analytics.total_logs}</p>
-                <p className="mt-2 text-sm text-gray-500">in {timeRange} days</p>
+              <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`} data-testid="total-logs-card">
+                <p className={`text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total Logs</p>
+                <p className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{analytics.total_logs}</p>
+                <p className={`mt-2 text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>in {timeRange} days</p>
               </div>
 
-              <div className="bg-white rounded-xl shadow-md p-6" data-testid="consistency-card">
-                <p className="text-sm font-medium text-gray-600 mb-2">Consistency</p>
-                <p className="text-4xl font-bold text-gray-900">
+              <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`} data-testid="consistency-card">
+                <p className={`text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Consistency</p>
+                <p className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {Math.round((analytics.total_logs / timeRange) * 100)}%
                 </p>
-                <p className="mt-2 text-sm text-gray-500">logging rate</p>
+                <p className={`mt-2 text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>logging rate</p>
               </div>
 
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <p className="text-sm font-medium text-gray-600 mb-2">Patterns Found</p>
-                <p className="text-4xl font-bold text-purple-600">
+              <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                <p className={`text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Patterns Found</p>
+                <p className="text-4xl font-bold text-purple-500">
                   {advancedAnalytics?.patterns?.length || 0}
                 </p>
-                <p className="mt-2 text-sm text-gray-500">identified</p>
+                <p className={`mt-2 text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>identified</p>
               </div>
             </div>
 
             {/* Mood Trend Chart */}
-            <div className="bg-white rounded-xl shadow-md p-6" data-testid="mood-trend-chart">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Mood Trend Over Time</h2>
+            <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`} data-testid="mood-trend-chart">
+              <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Mood Trend Over Time</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={chartData}>
                   <defs>
@@ -254,18 +256,18 @@ const Insights = () => {
                       <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
                   <XAxis 
                     dataKey="date" 
-                    tick={{ fontSize: 12 }}
+                    tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }}
                     tickFormatter={(value) => {
                       const date = new Date(value);
                       return `${date.getMonth() + 1}/${date.getDate()}`;
                     }}
                   />
-                  <YAxis domain={[0, 10]} tick={{ fontSize: 12 }} />
+                  <YAxis domain={[0, 10]} tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                    contentStyle={{ backgroundColor: isDark ? '#1f2937' : 'white', border: isDark ? '1px solid #374151' : '1px solid #e5e7eb', borderRadius: '8px', color: isDark ? '#fff' : '#000' }}
                     formatter={(value, name) => [value, name === 'mood' ? 'Mood' : 'Sleep (hrs)']}
                   />
                   <Area 
@@ -282,15 +284,15 @@ const Insights = () => {
             {/* Mood Distribution */}
             {advancedAnalytics?.mood_distribution && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-xl shadow-md p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Mood Distribution</h2>
+                <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                  <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Mood Distribution</h2>
                   <ResponsiveContainer width="100%" height={250}>
                     <BarChart data={advancedAnalytics.mood_distribution}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="rating" tick={{ fontSize: 12 }} />
-                      <YAxis tick={{ fontSize: 12 }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
+                      <XAxis dataKey="rating" tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} />
+                      <YAxis tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                        contentStyle={{ backgroundColor: isDark ? '#1f2937' : 'white', border: isDark ? '1px solid #374151' : '1px solid #e5e7eb', borderRadius: '8px', color: isDark ? '#fff' : '#000' }}
                         formatter={(value) => [`${value} logs`, 'Count']}
                       />
                       <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]}>
@@ -307,13 +309,13 @@ const Insights = () => {
 
                 {/* Day of Week Analysis */}
                 {advancedAnalytics?.day_of_week_analysis?.length > 0 && (
-                  <div className="bg-white rounded-xl shadow-md p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Mood by Day of Week</h2>
+                  <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                    <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Mood by Day of Week</h2>
                     <ResponsiveContainer width="100%" height={250}>
                       <RadarChart data={advancedAnalytics.day_of_week_analysis}>
-                        <PolarGrid />
-                        <PolarAngleAxis dataKey="day" tick={{ fontSize: 11 }} />
-                        <PolarRadiusAxis domain={[0, 10]} tick={{ fontSize: 10 }} />
+                        <PolarGrid stroke={isDark ? '#374151' : '#e5e7eb'} />
+                        <PolarAngleAxis dataKey="day" tick={{ fontSize: 11, fill: isDark ? '#9ca3af' : '#6b7280' }} />
+                        <PolarRadiusAxis domain={[0, 10]} tick={{ fontSize: 10, fill: isDark ? '#9ca3af' : '#6b7280' }} />
                         <Radar 
                           name="Average Mood" 
                           dataKey="average_mood" 
@@ -321,7 +323,7 @@ const Insights = () => {
                           fill="#8b5cf6" 
                           fillOpacity={0.5} 
                         />
-                        <Tooltip />
+                        <Tooltip contentStyle={{ backgroundColor: isDark ? '#1f2937' : 'white', border: isDark ? '1px solid #374151' : '1px solid #e5e7eb', borderRadius: '8px', color: isDark ? '#fff' : '#000' }} />
                       </RadarChart>
                     </ResponsiveContainer>
                   </div>
@@ -331,17 +333,17 @@ const Insights = () => {
 
             {/* Key Insights */}
             {analytics.insights.length > 0 && (
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Key Insights</h2>
+              <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Key Insights</h2>
                 <div className="space-y-3">
                   {analytics.insights.map((insight, index) => (
-                    <div key={index} className="flex items-start space-x-3 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div key={index} className={`flex items-start space-x-3 rounded-lg p-4 border ${isDark ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-200'}`}>
                       <div className="flex-shrink-0">
-                        <div className="bg-blue-100 rounded-full p-2">
-                          <TrendingUp className="h-5 w-5 text-blue-600" />
+                        <div className={`rounded-full p-2 ${isDark ? 'bg-blue-900/50' : 'bg-blue-100'}`}>
+                          <TrendingUp className="h-5 w-5 text-blue-500" />
                         </div>
                       </div>
-                      <p className="text-sm text-gray-700 leading-relaxed">{insight}</p>
+                      <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{insight}</p>
                     </div>
                   ))}
                 </div>
