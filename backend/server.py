@@ -2156,8 +2156,6 @@ async def subscribe_push(
     user_id: str = Depends(get_current_user_id)
 ):
     """Subscribe to push notifications"""
-    from models import PushSubscription
-    
     # Check if subscription already exists
     existing = await push_subscriptions_collection.find_one({
         "user_id": user_id,
