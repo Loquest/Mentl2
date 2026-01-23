@@ -66,15 +66,15 @@ const Dashboard = () => {
   };
 
   const getMoodColor = (rating) => {
-    if (rating >= 7) return 'bg-green-100 border-green-300';
-    if (rating >= 4) return 'bg-yellow-100 border-yellow-300';
-    return 'bg-red-100 border-red-300';
+    if (rating >= 7) return isDark ? 'bg-green-900/40 border-green-700' : 'bg-green-100 border-green-300';
+    if (rating >= 4) return isDark ? 'bg-yellow-900/40 border-yellow-700' : 'bg-yellow-100 border-yellow-300';
+    return isDark ? 'bg-red-900/40 border-red-700' : 'bg-red-100 border-red-300';
   };
 
   const getTrendColor = (trend) => {
-    if (trend === 'improving') return 'text-green-600';
-    if (trend === 'declining') return 'text-red-600';
-    return 'text-gray-600';
+    if (trend === 'improving') return 'text-green-500';
+    if (trend === 'declining') return 'text-red-500';
+    return isDark ? 'text-gray-400' : 'text-gray-600';
   };
 
   if (loading) {
@@ -83,7 +83,7 @@ const Dashboard = () => {
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading dashboard...</p>
+            <p className={`mt-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Loading dashboard...</p>
           </div>
         </div>
       </Layout>
@@ -195,8 +195,8 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-600 mb-4">You haven&apos;t logged your mood today</p>
+                  <Calendar className={`h-12 w-12 mx-auto mb-3 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
+                  <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>You haven&apos;t logged your mood today</p>
                   <Link
                     to="/log-mood"
                     className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transition"
