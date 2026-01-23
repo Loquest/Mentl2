@@ -3,10 +3,12 @@ from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 import os
 import logging
+import asyncio
 from pathlib import Path
 from typing import List, Optional
 from datetime import datetime, timedelta, timezone
 from statistics import mean
+import resend
 
 # Local imports
 from models import (
@@ -16,7 +18,8 @@ from models import (
     Content,
     CaregiverInvitation, CaregiverInvitationCreate, CaregiverRelationship,
     CaregiverPermissionUpdate, Notification,
-    DietaryPreferences, DietaryPreferencesUpdate, DietarySuggestionRequest, DietarySuggestion
+    DietaryPreferences, DietaryPreferencesUpdate, DietarySuggestionRequest, DietarySuggestion,
+    PushSubscription, NotificationPreferences
 )
 from auth import (
     get_password_hash, verify_password, create_access_token, get_current_user_id
@@ -24,6 +27,7 @@ from auth import (
 from database import (
     users_collection, mood_logs_collection, chat_history_collection, content_collection,
     caregiver_invitations_collection, caregiver_relationships_collection, notifications_collection,
+    push_subscriptions_collection,
     close_db_connection
 )
 
@@ -33,6 +37,10 @@ import json
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+
+# Initialize Resend
+resend.api_key = os.getenv("RESEND_API_KEY")
+SENDER_EMAIL = os.getenv("SENDER_EMAIL", "onboarding@resend.dev")
 
 # Create the main app
 app = FastAPI(title="Mental Health Companion API")
