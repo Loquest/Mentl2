@@ -23,6 +23,7 @@ const CONTENT_TYPES = [
 ];
 
 const Library = () => {
+  const { isDark } = useTheme();
   const [content, setContent] = useState([]);
   const [filteredContent, setFilteredContent] = useState([]);
   const [loading, setLoading] = useState(true);
