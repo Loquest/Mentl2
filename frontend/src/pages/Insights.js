@@ -408,7 +408,7 @@ const Insights = () => {
               <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
                 <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Weekly Pattern Analysis</h2>
                 <div className="grid grid-cols-7 gap-2">
-                  {advancedAnalytics.day_of_week_analysis
+                  {[...advancedAnalytics.day_of_week_analysis]
                     .sort((a, b) => a.day_index - b.day_index)
                     .map((day) => {
                       const moodLevel = day.average_mood >= 7 ? 'high' : day.average_mood >= 4 ? 'medium' : 'low';
