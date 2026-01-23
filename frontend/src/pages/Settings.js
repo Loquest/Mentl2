@@ -127,6 +127,62 @@ const Settings = () => {
   const bmi = calculateBMI();
   const bmiCategory = getBMICategory(bmi);
 
+  const handleEnablePushNotifications = async () => {
+    setNotificationLoading(true);
+    setError('');
+    
+    try {
+      // Request permission
+      const permission = await requestNotificationPermission();
+      setPushPermission(permission);
+      
+      if (permission === 'granted') {
+        const token = localStorage.getItem('token');
+        await initializePushNotifications(token);
+        await subscribeToPush(token);
+        setPushSubscribed(true);
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+      } else if (permission === 'denied') {
+        setError('Notification permission denied. Please enable notifications in your browser settings.');
+      }
+    } catch (err) {
+      console.error('Push notification error:', err);
+      setError('Failed to enable push notifications');
+    } finally {
+      setNotificationLoading(false);
+    }
+  };
+
+  const handleDisablePushNotifications = async () => {
+    setNotificationLoading(true);
+    setError('');
+    
+    try {
+      const token = localStorage.getItem('token');
+      await unsubscribeFromPush(token);
+      setPushSubscribed(false);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      console.error('Push notification error:', err);
+      setError('Failed to disable push notifications');
+    } finally {
+      setNotificationLoading(false);
+    }
+  };
+
+  const handleTestNotification = async () => {
+    try {
+      await showLocalNotification('Test Notification', {
+        body: 'Push notifications are working! 🎉',
+        tag: 'test-notification'
+      });
+    } catch (err) {
+      setError('Failed to show test notification');
+    }
+  };
+
   return (
     <Layout>
       <div className="px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto" data-testid="settings-page">
