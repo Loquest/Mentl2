@@ -2,8 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import Layout from '../components/Layout';
+import OnboardingTutorial from '../components/OnboardingTutorial';
 import api from '../utils/api';
-import { User, Check, AlertCircle, Heart, Activity, Scale, Ruler, Bell, BellOff } from 'lucide-react';
+import { User, Check, AlertCircle, Heart, Activity, Scale, Ruler, Bell, BellOff, HelpCircle, BookOpen } from 'lucide-react';
 import { 
   isPushSupported, 
   getNotificationPermission, 
