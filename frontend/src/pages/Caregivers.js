@@ -554,7 +554,7 @@ const Caregivers = () => {
             {/* Back Button */}
             <button
               onClick={() => { setSelectedPatient(null); setPatientData(null); }}
-              className="text-purple-600 hover:text-purple-700 font-medium flex items-center"
+              className={`font-medium flex items-center ${isDark ? 'text-purple-400 hover:text-purple-300' : 'text-purple-600 hover:text-purple-700'}`}
               data-testid="back-to-patients"
             >
               <ChevronRight className="h-5 w-5 rotate-180 mr-1" />
@@ -562,7 +562,7 @@ const Caregivers = () => {
             </button>
 
             {/* Patient Header */}
-            <div className="bg-white rounded-xl shadow-md p-6">
+            <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
               <div className="flex items-center">
                 <div className="bg-gradient-to-br from-pink-500 to-red-500 w-16 h-16 rounded-full flex items-center justify-center mr-6">
                   <span className="text-white font-bold text-2xl">
@@ -570,8 +570,8 @@ const Caregivers = () => {
                   </span>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{selectedPatient.patient_name}</h2>
-                  <p className="text-gray-500">{selectedPatient.patient_email}</p>
+                  <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedPatient.patient_name}</h2>
+                  <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>{selectedPatient.patient_email}</p>
                 </div>
               </div>
             </div>
