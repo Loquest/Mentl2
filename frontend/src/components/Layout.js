@@ -182,7 +182,7 @@ const Layout = ({ children }) => {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-10">
+      <div className={`lg:hidden fixed bottom-0 left-0 right-0 border-t z-10 transition-colors duration-200 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className="flex justify-around py-2">
           {navigation.slice(0, 5).map((item) => {
             const Icon = item.icon;
@@ -192,10 +192,10 @@ const Layout = ({ children }) => {
                 key={item.name}
                 to={item.path}
                 className={`flex flex-col items-center px-3 py-2 text-xs font-medium rounded-lg transition ${
-                  isActive ? 'text-purple-600' : 'text-gray-600'
+                  isActive ? 'text-purple-600' : isDark ? 'text-gray-400' : 'text-gray-600'
                 }`}
               >
-                <Icon className={`h-5 w-5 mb-1 ${isActive ? 'text-purple-600' : 'text-gray-500'}`} />
+                <Icon className={`h-5 w-5 mb-1 ${isActive ? 'text-purple-600' : isDark ? 'text-gray-500' : 'text-gray-500'}`} />
                 <span>{item.name}</span>
               </Link>
             );
