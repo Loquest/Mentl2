@@ -424,7 +424,7 @@ const Settings = () => {
                         <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{condition.description}</p>
                         {conditions.includes(condition.id) && (
                           <p className="text-xs text-purple-500 font-medium mt-2">
-                            ✓ Selected - You'll receive tailored support for this condition
+                            ✓ Selected - You&apos;ll receive tailored support for this condition
                           </p>
                         )}
                       </div>
