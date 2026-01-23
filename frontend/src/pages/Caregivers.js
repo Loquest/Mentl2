@@ -278,32 +278,32 @@ const Caregivers = () => {
 
             {/* Invite Form */}
             {showInviteForm && (
-              <div className="bg-white rounded-xl shadow-md p-6 border-2 border-purple-200" data-testid="invite-form">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Invite a Caregiver</h3>
+              <div className={`rounded-xl shadow-md p-6 border-2 ${isDark ? 'bg-gray-800 border-purple-700' : 'bg-white border-purple-200'}`} data-testid="invite-form">
+                <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Invite a Caregiver</h3>
                 <form onSubmit={handleInvite} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                       Caregiver&apos;s Email Address
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <Mail className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
                       <input
                         type="email"
                         value={inviteEmail}
                         onChange={(e) => setInviteEmail(e.target.value)}
                         required
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'}`}
                         placeholder="caregiver@example.com"
                         data-testid="invite-email-input"
                       />
                     </div>
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className={`mt-1 text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                       They will receive an invitation to view your mood data
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <label className={`block text-sm font-medium mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                       Permissions
                     </label>
                     <div className="space-y-2">
@@ -316,8 +316,8 @@ const Caregivers = () => {
                           key={perm.key}
                           className={`flex items-center p-3 border rounded-lg cursor-pointer transition ${
                             invitePermissions[perm.key]
-                              ? 'border-purple-300 bg-purple-50'
-                              : 'border-gray-200 hover:border-purple-200'
+                              ? isDark ? 'border-purple-500 bg-purple-900/20' : 'border-purple-300 bg-purple-50'
+                              : isDark ? 'border-gray-700 hover:border-gray-600' : 'border-gray-200 hover:border-purple-200'
                           }`}
                         >
                           <input
@@ -330,16 +330,16 @@ const Caregivers = () => {
                             className="sr-only"
                           />
                           <perm.icon className={`h-5 w-5 mr-3 ${
-                            invitePermissions[perm.key] ? 'text-purple-600' : 'text-gray-400'
+                            invitePermissions[perm.key] ? 'text-purple-600' : isDark ? 'text-gray-500' : 'text-gray-400'
                           }`} />
                           <div className="flex-1">
-                            <p className="font-medium text-gray-900">{perm.label}</p>
-                            <p className="text-xs text-gray-500">{perm.desc}</p>
+                            <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{perm.label}</p>
+                            <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{perm.desc}</p>
                           </div>
                           <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
                             invitePermissions[perm.key]
                               ? 'bg-purple-500 border-purple-500'
-                              : 'border-gray-300'
+                              : isDark ? 'border-gray-600' : 'border-gray-300'
                           }`}>
                             {invitePermissions[perm.key] && <Check className="h-3 w-3 text-white" />}
                           </div>
@@ -352,7 +352,7 @@ const Caregivers = () => {
                     <button
                       type="button"
                       onClick={() => setShowInviteForm(false)}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                      className={`flex-1 px-4 py-2 border rounded-lg transition ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
                     >
                       Cancel
                     </button>
@@ -371,22 +371,22 @@ const Caregivers = () => {
 
             {/* Pending Invitations (Sent) */}
             {sentInvitations.filter(inv => inv.status === 'pending').length > 0 && (
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                <h3 className={`text-lg font-semibold mb-4 flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <Clock className="h-5 w-5 mr-2 text-yellow-500" />
                   Pending Invitations
                 </h3>
                 <div className="space-y-3">
                   {sentInvitations.filter(inv => inv.status === 'pending').map((inv) => (
-                    <div key={inv.id} className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div key={inv.id} className={`flex items-center justify-between p-4 rounded-lg border ${isDark ? 'bg-yellow-900/20 border-yellow-800' : 'bg-yellow-50 border-yellow-200'}`}>
                       <div>
-                        <p className="font-medium text-gray-900">{inv.caregiver_email}</p>
-                        <p className="text-sm text-gray-500">Invitation sent • Waiting for response</p>
+                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{inv.caregiver_email}</p>
+                        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Invitation sent • Waiting for response</p>
                       </div>
                       <button
                         onClick={() => handleCancelInvitation(inv.id)}
                         disabled={actionLoading}
-                        className="text-red-600 hover:text-red-700 p-2"
+                        className={`p-2 ${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-700'}`}
                         title="Cancel invitation"
                         data-testid={`cancel-invite-${inv.id}`}
                       >
@@ -399,24 +399,24 @@ const Caregivers = () => {
             )}
 
             {/* Current Caregivers */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+              <h3 className={`text-lg font-semibold mb-4 flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 <Shield className="h-5 w-5 mr-2 text-purple-500" />
                 My Caregivers
               </h3>
               
               {caregivers.length === 0 ? (
                 <div className="text-center py-12">
-                  <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-2">No caregivers yet</p>
-                  <p className="text-sm text-gray-500">
+                  <Users className={`h-16 w-16 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />
+                  <p className={`mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>No caregivers yet</p>
+                  <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                     Invite a trusted family member or friend to help support your mental health journey
                   </p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {caregivers.map((caregiver) => (
-                    <div key={caregiver.id} className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-lg" data-testid={`caregiver-${caregiver.id}`}>
+                    <div key={caregiver.id} className={`flex items-center justify-between p-4 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`} data-testid={`caregiver-${caregiver.id}`}>
                       <div className="flex items-center">
                         <div className="bg-gradient-to-br from-purple-500 to-pink-500 w-12 h-12 rounded-full flex items-center justify-center mr-4">
                           <span className="text-white font-bold text-lg">
@@ -424,17 +424,17 @@ const Caregivers = () => {
                           </span>
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">{caregiver.caregiver_name}</p>
-                          <p className="text-sm text-gray-500">{caregiver.caregiver_email}</p>
+                          <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{caregiver.caregiver_name}</p>
+                          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{caregiver.caregiver_email}</p>
                           <div className="flex gap-2 mt-1">
                             {caregiver.permissions?.view_mood_logs && (
-                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Logs</span>
+                              <span className={`text-xs px-2 py-0.5 rounded ${isDark ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>Logs</span>
                             )}
                             {caregiver.permissions?.view_analytics && (
-                              <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Analytics</span>
+                              <span className={`text-xs px-2 py-0.5 rounded ${isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-100 text-green-700'}`}>Analytics</span>
                             )}
                             {caregiver.permissions?.receive_alerts && (
-                              <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">Alerts</span>
+                              <span className={`text-xs px-2 py-0.5 rounded ${isDark ? 'bg-yellow-900/50 text-yellow-400' : 'bg-yellow-100 text-yellow-700'}`}>Alerts</span>
                             )}
                           </div>
                         </div>
@@ -442,7 +442,7 @@ const Caregivers = () => {
                       <button
                         onClick={() => handleRemoveCaregiver(caregiver.id)}
                         disabled={actionLoading}
-                        className="text-red-600 hover:text-red-700 p-2"
+                        className={`p-2 ${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-700'}`}
                         title="Remove caregiver"
                         data-testid={`remove-caregiver-${caregiver.id}`}
                       >
