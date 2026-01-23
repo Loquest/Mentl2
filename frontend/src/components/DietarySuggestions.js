@@ -197,16 +197,16 @@ const DietarySuggestions = ({ compact = false }) => {
 
   // Full version
   return (
-    <div className="bg-white rounded-xl shadow-md p-6" data-testid="dietary-suggestions-full">
+    <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`} data-testid="dietary-suggestions-full">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+        <h2 className={`text-lg font-semibold flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
           <Utensils className="h-5 w-5 mr-2 text-green-500" />
           Mood-Based Nutrition
         </h2>
         <button
           onClick={handleRefresh}
           disabled={loading}
-          className="flex items-center text-sm text-green-600 hover:text-green-700 font-medium"
+          className="flex items-center text-sm text-green-500 hover:text-green-400 font-medium"
         >
           <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
           New Suggestion
@@ -225,13 +225,13 @@ const DietarySuggestions = ({ compact = false }) => {
             onClick={() => handleTypeChange(type)}
             className={`flex-1 p-3 rounded-lg text-left transition ${
               suggestionType === type
-                ? 'bg-green-100 border-2 border-green-500'
-                : 'bg-gray-50 border-2 border-transparent hover:border-green-200'
+                ? isDark ? 'bg-green-900/40 border-2 border-green-600' : 'bg-green-100 border-2 border-green-500'
+                : isDark ? 'bg-gray-700 border-2 border-transparent hover:border-green-800' : 'bg-gray-50 border-2 border-transparent hover:border-green-200'
             }`}
           >
-            <Icon className={`h-5 w-5 mb-1 ${suggestionType === type ? 'text-green-600' : 'text-gray-400'}`} />
-            <p className={`font-medium text-sm ${suggestionType === type ? 'text-green-800' : 'text-gray-700'}`}>{label}</p>
-            <p className="text-xs text-gray-500">{desc}</p>
+            <Icon className={`h-5 w-5 mb-1 ${suggestionType === type ? 'text-green-500' : isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+            <p className={`font-medium text-sm ${suggestionType === type ? (isDark ? 'text-green-400' : 'text-green-800') : (isDark ? 'text-gray-300' : 'text-gray-700')}`}>{label}</p>
+            <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{desc}</p>
           </button>
         ))}
       </div>
@@ -239,23 +239,23 @@ const DietarySuggestions = ({ compact = false }) => {
       {suggestion && (
         <div className="space-y-4">
           {/* Main Suggestion Card */}
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+          <div className={`rounded-xl p-6 border ${isDark ? 'bg-gradient-to-br from-green-900/30 to-emerald-900/30 border-green-800' : 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-100'}`}>
             <div className="flex items-center mb-3">
               {getTimeIcon()}
-              <span className="text-sm text-gray-500 ml-2 capitalize">{getTimeOfDay()} • Personalized for you</span>
+              <span className={`text-sm ml-2 capitalize ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{getTimeOfDay()} • Personalized for you</span>
             </div>
             
-            <h3 className="text-xl font-bold text-gray-900 mb-2">{suggestion.title}</h3>
-            <p className="text-gray-600 mb-4">{suggestion.description}</p>
+            <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{suggestion.title}</h3>
+            <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{suggestion.description}</p>
 
             {/* Reasoning */}
             {suggestion.reasoning && (
-              <div className="bg-white/60 rounded-lg p-3 mb-4">
+              <div className={`rounded-lg p-3 mb-4 ${isDark ? 'bg-gray-700/50' : 'bg-white/60'}`}>
                 <div className="flex items-start">
                   <Brain className="h-5 w-5 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Why this helps you</p>
-                    <p className="text-sm text-gray-600">{suggestion.reasoning}</p>
+                    <p className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Why this helps you</p>
+                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{suggestion.reasoning}</p>
                   </div>
                 </div>
               </div>
@@ -265,13 +265,13 @@ const DietarySuggestions = ({ compact = false }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
               {suggestion.nutritional_highlights?.length > 0 && (
                 <div>
-                  <p className="text-xs font-medium text-gray-500 mb-2 flex items-center">
+                  <p className={`text-xs font-medium mb-2 flex items-center ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                     <Leaf className="h-3 w-3 mr-1" />
                     NUTRITIONAL HIGHLIGHTS
                   </p>
                   <div className="flex flex-wrap gap-1">
                     {suggestion.nutritional_highlights.map((item, idx) => (
-                      <span key={idx} className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">
+                      <span key={idx} className={`text-xs px-2 py-1 rounded-full ${isDark ? 'bg-emerald-900/50 text-emerald-400' : 'bg-emerald-100 text-emerald-700'}`}>
                         {item}
                       </span>
                     ))}
@@ -280,13 +280,13 @@ const DietarySuggestions = ({ compact = false }) => {
               )}
               {suggestion.mood_benefits?.length > 0 && (
                 <div>
-                  <p className="text-xs font-medium text-gray-500 mb-2 flex items-center">
+                  <p className={`text-xs font-medium mb-2 flex items-center ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                     <Heart className="h-3 w-3 mr-1" />
                     MOOD BENEFITS
                   </p>
                   <div className="flex flex-wrap gap-1">
                     {suggestion.mood_benefits.map((item, idx) => (
-                      <span key={idx} className="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded-full">
+                      <span key={idx} className={`text-xs px-2 py-1 rounded-full ${isDark ? 'bg-pink-900/50 text-pink-400' : 'bg-pink-100 text-pink-700'}`}>
                         {item}
                       </span>
                     ))}
@@ -297,7 +297,7 @@ const DietarySuggestions = ({ compact = false }) => {
 
             {/* Prep Time */}
             {suggestion.prep_time && (
-              <div className="flex items-center text-sm text-gray-500">
+              <div className={`flex items-center text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                 <Clock className="h-4 w-4 mr-1" />
                 {suggestion.prep_time}
               </div>
@@ -306,11 +306,11 @@ const DietarySuggestions = ({ compact = false }) => {
 
           {/* Ingredients */}
           {suggestion.ingredients?.length > 0 && (
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="font-semibold text-gray-900 mb-3">Ingredients</h4>
+            <div className={`rounded-lg p-4 ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+              <h4 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>Ingredients</h4>
               <ul className="grid grid-cols-2 gap-2">
                 {suggestion.ingredients.map((ingredient, idx) => (
-                  <li key={idx} className="flex items-center text-sm text-gray-700">
+                  <li key={idx} className={`flex items-center text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                     <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
                     {ingredient}
                   </li>
@@ -321,11 +321,11 @@ const DietarySuggestions = ({ compact = false }) => {
 
           {/* Preparation Steps */}
           {suggestion.preparation_steps?.length > 0 && (
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="font-semibold text-gray-900 mb-3">How to Prepare</h4>
+            <div className={`rounded-lg p-4 ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+              <h4 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>How to Prepare</h4>
               <ol className="space-y-2">
                 {suggestion.preparation_steps.map((step, idx) => (
-                  <li key={idx} className="flex text-sm text-gray-700">
+                  <li key={idx} className={`flex text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                     <span className="flex-shrink-0 w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs mr-3">
                       {idx + 1}
                     </span>
@@ -338,11 +338,11 @@ const DietarySuggestions = ({ compact = false }) => {
 
           {/* Alternatives */}
           {suggestion.alternatives?.length > 0 && (
-            <div className="border-t border-gray-200 pt-4">
-              <p className="text-sm text-gray-500 mb-2">Not feeling this? Try:</p>
+            <div className={`border-t pt-4 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+              <p className={`text-sm mb-2 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Not feeling this? Try:</p>
               <div className="flex flex-wrap gap-2">
                 {suggestion.alternatives.map((alt, idx) => (
-                  <span key={idx} className="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
+                  <span key={idx} className={`text-sm px-3 py-1 rounded-full ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
                     {alt}
                   </span>
                 ))}
