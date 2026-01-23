@@ -219,22 +219,22 @@ const Dashboard = () => {
 
             {/* Mood Trend */}
             {analytics && (
-              <div className="bg-white rounded-xl shadow-md p-6 mt-6" data-testid="mood-trend-card">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">30-Day Overview</h2>
+              <div className={`rounded-xl shadow-md p-6 mt-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`} data-testid="mood-trend-card">
+                <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>30-Day Overview</h2>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Average Mood</span>
-                    <span className="text-lg font-bold text-gray-900">{analytics.average_mood}/10</span>
+                    <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Average Mood</span>
+                    <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{analytics.average_mood}/10</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Trend</span>
+                    <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Trend</span>
                     <span className={`text-lg font-bold capitalize ${getTrendColor(analytics.mood_trend)}`}>
                       {analytics.mood_trend}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Total Logs</span>
-                    <span className="text-lg font-bold text-gray-900">{analytics.total_logs}</span>
+                    <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total Logs</span>
+                    <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{analytics.total_logs}</span>
                   </div>
                 </div>
               </div>
@@ -246,17 +246,17 @@ const Dashboard = () => {
 
             {/* Insights */}
             {analytics && analytics.insights.length > 0 && (
-              <div className="bg-white rounded-xl shadow-md p-6" data-testid="insights-card">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Insights & Suggestions</h2>
+              <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`} data-testid="insights-card">
+                <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Insights & Suggestions</h2>
                 <div className="space-y-3">
                   {analytics.insights.map((insight, index) => (
-                    <div key={index} className="flex items-start space-x-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div key={index} className={`flex items-start space-x-3 rounded-lg p-3 border ${isDark ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-200'}`}>
                       <div className="flex-shrink-0">
-                        <div className="bg-blue-100 rounded-full p-1">
-                          <TrendingUp className="h-4 w-4 text-blue-600" />
+                        <div className={`rounded-full p-1 ${isDark ? 'bg-blue-900/50' : 'bg-blue-100'}`}>
+                          <TrendingUp className="h-4 w-4 text-blue-500" />
                         </div>
                       </div>
-                      <p className="text-sm text-gray-700">{insight}</p>
+                      <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{insight}</p>
                     </div>
                   ))}
                 </div>
@@ -264,32 +264,32 @@ const Dashboard = () => {
             )}
 
             {/* Recent Activity */}
-            <div className="bg-white rounded-xl shadow-md p-6" data-testid="recent-activity-card">
+            <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`} data-testid="recent-activity-card">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
-                <Link to="/insights" className="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Recent Activity</h2>
+                <Link to="/insights" className="text-sm text-purple-500 hover:text-purple-400 font-medium">
                   View All
                 </Link>
               </div>
               {recentLogs.length > 0 ? (
                 <div className="space-y-3">
                   {recentLogs.slice(0, 5).map((log) => (
-                    <div key={log.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                    <div key={log.id} className={`flex items-center justify-between py-2 border-b last:border-0 ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
                       <div className="flex items-center space-x-3">
                         {getMoodEmoji(log.mood_rating)}
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{log.date}</p>
+                          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{log.date}</p>
                           {log.mood_tag && (
-                            <p className="text-xs text-gray-500 capitalize">{log.mood_tag}</p>
+                            <p className={`text-xs capitalize ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{log.mood_tag}</p>
                           )}
                         </div>
                       </div>
-                      <span className="text-sm font-bold text-gray-900">{log.mood_rating}/10</span>
+                      <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{log.mood_rating}/10</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500">
+                <div className={`text-center py-8 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                   <p>No mood logs yet. Start tracking your mood to see insights!</p>
                 </div>
               )}
