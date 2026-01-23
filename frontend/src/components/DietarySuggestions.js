@@ -183,7 +183,7 @@ const DietarySuggestions = ({ compact = false }) => {
               className={`flex-1 flex items-center justify-center px-3 py-2 rounded-lg text-xs font-medium transition ${
                 suggestionType === type
                   ? 'bg-green-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               <Icon className="h-3 w-3 mr-1" />
