@@ -129,7 +129,7 @@ const ActivityDetail = () => {
         {/* Materials Needed */}
         {details?.details?.materials_needed && details.details.materials_needed.length > 0 && (
           <div className={`rounded-xl shadow-md p-6 mb-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-            <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>What You'll Need</h2>
+            <h2 className={`text-xl font-bold text-gray-900 mb-4 ${isDark ? 'text-white' : ''}`}>What You&apos;ll Need</h2>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {details.details.materials_needed.map((material, index) => (
                 <li key={index} className={`flex items-center ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>

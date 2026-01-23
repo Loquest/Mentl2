@@ -15,7 +15,10 @@ const Login = () => {
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setIsDark(savedTheme === 'dark' || (!savedTheme && systemDark));
+    const shouldBeDark = savedTheme === 'dark' || (!savedTheme && systemDark);
+    if (shouldBeDark) {
+      setIsDark(true);
+    }
   }, []);
 
   const handleSubmit = async (e) => {
@@ -109,9 +112,8 @@ const Login = () => {
           </div>
         </div>
 
-        {/* Support Message */}
         <div className={`mt-6 text-center text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-          <p>Your mental health matters. We're here to support you.</p>
+          <p>Your mental health matters. We&apos;re here to support you.</p>
         </div>
       </div>
     </div>

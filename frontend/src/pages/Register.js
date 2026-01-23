@@ -26,7 +26,10 @@ const Register = () => {
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setIsDark(savedTheme === 'dark' || (!savedTheme && systemDark));
+    const shouldBeDark = savedTheme === 'dark' || (!savedTheme && systemDark);
+    if (shouldBeDark) {
+      setIsDark(true);
+    }
   }, []);
 
   const handleStep1Submit = (e) => {
