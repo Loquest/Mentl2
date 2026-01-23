@@ -619,6 +619,91 @@ const Settings = () => {
             </div>
           )}
 
+          {/* Help Tab */}
+          {activeTab === 'help' && (
+            <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+              <div className="flex items-center mb-6">
+                <div className="bg-gradient-to-br from-amber-500 to-orange-500 p-3 rounded-full mr-4">
+                  <HelpCircle className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Help & Resources</h2>
+                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Learn how to get the most out of Mentl</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {/* View Tutorial Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowTutorial(true)}
+                  className={`w-full p-4 rounded-xl border-2 text-left transition flex items-center justify-between hover:scale-[1.01] ${
+                    isDark 
+                      ? 'bg-gradient-to-r from-purple-900/30 to-pink-900/30 border-purple-700 hover:border-purple-500' 
+                      : 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 hover:border-purple-400'
+                  }`}
+                  data-testid="view-tutorial-btn"
+                >
+                  <div className="flex items-center">
+                    <div className={`p-2 rounded-lg mr-3 ${isDark ? 'bg-purple-800' : 'bg-purple-100'}`}>
+                      <BookOpen className={`h-5 w-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
+                    </div>
+                    <div>
+                      <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>View App Tutorial</p>
+                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Revisit the walkthrough of Mentl&apos;s features</p>
+                    </div>
+                  </div>
+                  <div className={`text-sm font-medium px-3 py-1 rounded-full ${
+                    isDark ? 'bg-purple-800 text-purple-300' : 'bg-purple-100 text-purple-700'
+                  }`}>
+                    4 slides
+                  </div>
+                </button>
+
+                {/* Quick Tips */}
+                <div className={`p-4 rounded-xl border ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                  <h3 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>Quick Tips</h3>
+                  <ul className={`space-y-2 text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <li className="flex items-start">
+                      <span className="mr-2">💡</span>
+                      <span>Log your mood daily for the best insights and pattern detection</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">💡</span>
+                      <span>The AI chat is available 24/7 and can help with coping strategies</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">💡</span>
+                      <span>Invite trusted family members as caregivers to build your support network</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">💡</span>
+                      <span>Check the Insights page weekly to see your progress and patterns</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Crisis Resources */}
+                <div className={`p-4 rounded-xl border ${isDark ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-200'}`}>
+                  <h3 className={`font-semibold mb-2 ${isDark ? 'text-red-400' : 'text-red-800'}`}>Crisis Resources</h3>
+                  <p className={`text-sm mb-3 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>
+                    If you&apos;re in crisis or need immediate support:
+                  </p>
+                  <ul className={`space-y-2 text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <li className="flex items-center">
+                      <span className="font-semibold mr-2">988 Suicide & Crisis Lifeline:</span>
+                      <a href="tel:988" className="text-blue-500 hover:underline">Call or text 988</a>
+                    </li>
+                    <li className="flex items-center">
+                      <span className="font-semibold mr-2">Crisis Text Line:</span>
+                      <span>Text HOME to <strong>741741</strong></span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Privacy & Info Section */}
           <div className={`rounded-xl p-6 border ${isDark ? 'bg-purple-900/20 border-purple-800' : 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200'}`}>
             <h2 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Privacy & Security</h2>
