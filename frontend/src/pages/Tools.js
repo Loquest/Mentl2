@@ -348,11 +348,11 @@ const PomodoroTimer = () => {
       interval = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
-    } else if (timeLeft === 0) {
-      handleTimerComplete();
+    } else if (timeLeft === 0 && isRunning) {
+      setTimerComplete(true);
     }
     return () => clearInterval(interval);
-  }, [isRunning, timeLeft, handleTimerComplete]);
+  }, [isRunning, timeLeft]);
 
   const startSession = async () => {
     try {
