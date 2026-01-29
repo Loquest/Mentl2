@@ -283,6 +283,33 @@ const PomodoroTimer = () => {
   const [stats, setStats] = useState(null);
   const [taskTitle, setTaskTitle] = useState('');
 
+  const handleTimerComplete = useCallback(async () => {
+    setIsRunning(false);
+    
+    if (!isBreak && sessionId) {
+      try {
+        await api.put(`/tools/pomodoro/sessions/${sessionId}`, {
+          status: 'completed',
+          actual_duration_minutes: settings.default_focus_duration
+        });
+        // Refresh stats
+        const response = await api.get('/tools/pomodoro/stats?days=7');
+        setStats(response.data);
+      } catch (err) {
+        console.error('Error completing session:', err);
+      }
+    }
+    
+    // Switch to break or focus
+    if (isBreak) {
+      setTimeLeft(settings.default_focus_duration * 60);
+      setIsBreak(false);
+    } else {
+      setTimeLeft(settings.default_short_break * 60);
+      setIsBreak(true);
+    }
+  }, [isBreak, sessionId, settings.default_focus_duration, settings.default_short_break]);
+
   useEffect(() => {
     const fetchSettings = async () => {
       try {
