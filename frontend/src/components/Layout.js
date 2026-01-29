@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Heart, Home, PenLine, BarChart3, MessageCircle, BookOpen, LogOut, User, Users, Utensils, Moon, Sun } from 'lucide-react';
+import { Heart, Home, PenLine, BarChart3, MessageCircle, BookOpen, LogOut, User, Users, Utensils, Moon, Sun, Wrench } from 'lucide-react';
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -15,6 +15,9 @@ const Layout = ({ children }) => {
     navigate('/login');
   };
 
+  // Check if user has any condition that has tools
+  const hasConditionWithTools = user?.conditions?.some(c => ['adhd'].includes(c));
+
   const navigation = [
     { name: 'Dashboard', path: '/dashboard', icon: Home },
     { name: 'Log Mood', path: '/log-mood', icon: PenLine },
@@ -22,6 +25,8 @@ const Layout = ({ children }) => {
     { name: 'Nutrition', path: '/nutrition', icon: Utensils },
     { name: 'AI Chat', path: '/chat', icon: MessageCircle },
     { name: 'Library', path: '/library', icon: BookOpen },
+    // Conditionally add Tools for users with ADHD
+    ...(hasConditionWithTools ? [{ name: 'Tools', path: '/tools', icon: Wrench }] : []),
   ];
 
   return (
