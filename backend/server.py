@@ -21,7 +21,11 @@ from models import (
     CaregiverInvitation, CaregiverInvitationCreate, CaregiverRelationship,
     CaregiverPermissionUpdate, Notification,
     DietaryPreferences, DietaryPreferencesUpdate, DietarySuggestionRequest, DietarySuggestion,
-    PushSubscription, PushSubscriptionCreate, NotificationPreferences, NotificationPreferencesUpdate
+    PushSubscription, PushSubscriptionCreate, NotificationPreferences, NotificationPreferencesUpdate,
+    # ADHD Tools
+    Task, TaskCreate, TaskUpdate, TaskChunk, ChunkUpdate,
+    PomodoroSession, PomodoroSessionCreate, PomodoroSessionUpdate, PomodoroSettings,
+    DopamineItem, DopamineItemCreate, DopamineItemUpdate
 )
 from auth import (
     get_password_hash, verify_password, create_access_token, get_current_user_id
@@ -30,6 +34,8 @@ from database import (
     users_collection, mood_logs_collection, chat_history_collection, content_collection,
     caregiver_invitations_collection, caregiver_relationships_collection, notifications_collection,
     push_subscriptions_collection,
+    # ADHD Tools
+    tasks_collection, pomodoro_sessions_collection, pomodoro_settings_collection, dopamine_items_collection,
     close_db_connection
 )
 
