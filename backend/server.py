@@ -2281,6 +2281,7 @@ Return as JSON array:
             chunk['completed_at'] = chunk['completed_at'].isoformat()
     
     await tasks_collection.insert_one(task_dict)
+    task_dict.pop('_id', None)  # Remove MongoDB _id before returning
     
     return {"task": task_dict}
 
