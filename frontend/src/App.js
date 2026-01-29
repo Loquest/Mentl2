@@ -103,6 +103,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/tools"
+            element={
+              <ProtectedRoute>
+                <Tools />
+              </ProtectedRoute>
+            }
+          />
           
           {/* Default Redirect */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
