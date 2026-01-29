@@ -2428,6 +2428,7 @@ async def create_pomodoro_session(
     session_dict['started_at'] = session_dict['started_at'].isoformat()
     
     await pomodoro_sessions_collection.insert_one(session_dict)
+    session_dict.pop('_id', None)
     
     return {"session": session_dict}
 
