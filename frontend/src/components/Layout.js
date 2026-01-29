@@ -189,7 +189,11 @@ const Layout = ({ children }) => {
       {/* Mobile Bottom Navigation */}
       <div className={`lg:hidden fixed bottom-0 left-0 right-0 border-t z-50 transition-colors duration-200 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className="flex justify-around py-2 pb-safe">
-          {navigation.slice(0, 5).map((item) => {
+          {/* Show first 4 items + Tools if available, otherwise first 5 */}
+          {(hasConditionWithTools 
+            ? [navigation[0], navigation[1], navigation[2], navigation[4], navigation.find(n => n.name === 'Tools')]
+            : navigation.slice(0, 5)
+          ).filter(Boolean).map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
             return (
