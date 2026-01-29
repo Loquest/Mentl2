@@ -576,7 +576,7 @@ const DopamineMenu = () => {
     }
   };
 
-  const useItem = async (itemId) => {
+  const markItemUsed = async (itemId) => {
     try {
       const response = await api.post(`/tools/dopamine/${itemId}/use`);
       setItems(items.map(i => i.id === itemId ? response.data.item : i));
@@ -646,7 +646,7 @@ const DopamineMenu = () => {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => { useItem(randomPick.id); setRandomPick(null); }}
+                onClick={() => { markItemUsed(randomPick.id); setRandomPick(null); }}
                 className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600"
               >
                 Do it!
@@ -782,7 +782,7 @@ const DopamineMenu = () => {
                     <Star className={`w-5 h-5 ${item.is_favorite ? 'fill-current' : ''}`} />
                   </button>
                   <button
-                    onClick={() => useItem(item.id)}
+                    onClick={() => markItemUsed(item.id)}
                     className={`px-3 py-1.5 text-sm rounded-lg ${isDark ? 'bg-green-900/50 text-green-400 hover:bg-green-900' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
                   >
                     Do it
