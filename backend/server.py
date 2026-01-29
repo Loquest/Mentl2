@@ -2598,6 +2598,7 @@ async def create_dopamine_item(
     item_dict['created_at'] = item_dict['created_at'].isoformat()
     
     await dopamine_items_collection.insert_one(item_dict)
+    item_dict.pop('_id', None)
     
     return {"item": item_dict}
 
