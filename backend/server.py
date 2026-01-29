@@ -2204,6 +2204,483 @@ async def get_vapid_public_key():
     return {"publicKey": os.getenv("VAPID_PUBLIC_KEY", "")}
 
 
+# ==================== ADHD TOOLS ENDPOINTS ====================
+
+# ----- Task Chunking Engine -----
+
+@api_router.post("/tools/tasks")
+async def create_task(
+    task_data: TaskCreate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Create a new task, optionally using AI to break it into chunks"""
+    task = Task(
+        user_id=user_id,
+        title=task_data.title,
+        description=task_data.description,
+        priority=task_data.priority,
+        due_date=task_data.due_date,
+        tags=task_data.tags
+    )
+    
+    # Use AI to break task into chunks if requested
+    if task_data.auto_chunk and task_data.title:
+        try:
+            api_key = os.getenv("EMERGENT_LLM_KEY")
+            if api_key:
+                chunk_prompt = f"""Break this task into small, concrete, actionable steps for someone with ADHD.
+Task: {task_data.title}
+{f"Description: {task_data.description}" if task_data.description else ""}
+
+Requirements:
+- Each step should take 5-15 minutes maximum
+- Steps should be specific and actionable (start with a verb)
+- Include 3-7 steps
+- Order from easiest to hardest to build momentum
+- First step should be trivially easy to start (reduce initiation friction)
+
+Return as JSON array:
+[
+  {{"title": "Step title", "description": "Brief description", "estimated_minutes": 5}},
+  ...
+]"""
+                
+                chat = LlmChat(
+                    api_key=api_key,
+                    session_id=f"task_chunk_{user_id}_{task.id}",
+                    system_message="You are an ADHD task coach. Break tasks into small, actionable steps. Return only valid JSON."
+                ).with_model("openai", "gpt-5.2")
+                
+                user_message = UserMessage(text=chunk_prompt)
+                ai_response = await chat.send_message(user_message)
+                
+                # Parse chunks from AI response
+                json_match = re.search(r'\[.*\]', ai_response, re.DOTALL)
+                if json_match:
+                    chunks_data = json.loads(json_match.group(0))
+                    task.chunks = [
+                        TaskChunk(
+                            title=chunk.get("title", ""),
+                            description=chunk.get("description"),
+                            estimated_minutes=chunk.get("estimated_minutes", 5),
+                            order=idx
+                        )
+                        for idx, chunk in enumerate(chunks_data)
+                    ]
+                    task.estimated_total_minutes = sum(c.estimated_minutes for c in task.chunks)
+        except Exception as e:
+            logger.error(f"Error chunking task: {e}")
+    
+    task_dict = task.model_dump()
+    task_dict['created_at'] = task_dict['created_at'].isoformat()
+    task_dict['updated_at'] = task_dict['updated_at'].isoformat()
+    if task_dict.get('due_date'):
+        task_dict['due_date'] = task_dict['due_date'].isoformat()
+    for chunk in task_dict.get('chunks', []):
+        if chunk.get('completed_at'):
+            chunk['completed_at'] = chunk['completed_at'].isoformat()
+    
+    await tasks_collection.insert_one(task_dict)
+    
+    return {"task": task_dict}
+
+
+@api_router.get("/tools/tasks")
+async def get_tasks(
+    status: Optional[str] = None,
+    priority: Optional[str] = None,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get all tasks for the current user"""
+    query = {"user_id": user_id}
+    if status:
+        query["status"] = status
+    if priority:
+        query["priority"] = priority
+    
+    tasks = await tasks_collection.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return {"tasks": tasks}
+
+
+@api_router.get("/tools/tasks/{task_id}")
+async def get_task(
+    task_id: str,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get a specific task"""
+    task = await tasks_collection.find_one(
+        {"id": task_id, "user_id": user_id},
+        {"_id": 0}
+    )
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return {"task": task}
+
+
+@api_router.put("/tools/tasks/{task_id}")
+async def update_task(
+    task_id: str,
+    task_update: TaskUpdate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Update a task"""
+    update_data = {k: v for k, v in task_update.model_dump().items() if v is not None}
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    if 'due_date' in update_data and update_data['due_date']:
+        update_data['due_date'] = update_data['due_date'].isoformat()
+    
+    if update_data.get('status') == 'completed':
+        update_data['completed_at'] = datetime.now(timezone.utc).isoformat()
+    
+    result = await tasks_collection.update_one(
+        {"id": task_id, "user_id": user_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    task = await tasks_collection.find_one({"id": task_id}, {"_id": 0})
+    return {"task": task}
+
+
+@api_router.put("/tools/tasks/{task_id}/chunks/{chunk_id}")
+async def update_chunk(
+    task_id: str,
+    chunk_id: str,
+    chunk_update: ChunkUpdate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Update a specific chunk's completion status"""
+    task = await tasks_collection.find_one({"id": task_id, "user_id": user_id})
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    chunks = task.get('chunks', [])
+    chunk_found = False
+    completed_count = 0
+    
+    for chunk in chunks:
+        if chunk['id'] == chunk_id:
+            chunk['is_completed'] = chunk_update.is_completed
+            chunk['completed_at'] = datetime.now(timezone.utc).isoformat() if chunk_update.is_completed else None
+            chunk_found = True
+        if chunk.get('is_completed'):
+            completed_count += 1
+    
+    if not chunk_found:
+        raise HTTPException(status_code=404, detail="Chunk not found")
+    
+    update_data = {
+        'chunks': chunks,
+        'updated_at': datetime.now(timezone.utc).isoformat()
+    }
+    
+    if completed_count == len(chunks) and len(chunks) > 0:
+        update_data['status'] = 'completed'
+        update_data['completed_at'] = datetime.now(timezone.utc).isoformat()
+    elif completed_count > 0:
+        update_data['status'] = 'in_progress'
+    
+    await tasks_collection.update_one(
+        {"id": task_id},
+        {"$set": update_data}
+    )
+    
+    task = await tasks_collection.find_one({"id": task_id}, {"_id": 0})
+    return {"task": task}
+
+
+@api_router.delete("/tools/tasks/{task_id}")
+async def delete_task(
+    task_id: str,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Delete a task"""
+    result = await tasks_collection.delete_one({"id": task_id, "user_id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return {"message": "Task deleted"}
+
+
+# ----- Adaptive Pomodoro System -----
+
+@api_router.post("/tools/pomodoro/sessions")
+async def create_pomodoro_session(
+    session_data: PomodoroSessionCreate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Create a new pomodoro session"""
+    session = PomodoroSession(
+        user_id=user_id,
+        task_id=session_data.task_id,
+        task_title=session_data.task_title,
+        planned_duration_minutes=session_data.planned_duration_minutes,
+        break_duration_minutes=session_data.break_duration_minutes,
+        status="active",
+        started_at=datetime.now(timezone.utc)
+    )
+    
+    session_dict = session.model_dump()
+    session_dict['created_at'] = session_dict['created_at'].isoformat()
+    session_dict['started_at'] = session_dict['started_at'].isoformat()
+    
+    await pomodoro_sessions_collection.insert_one(session_dict)
+    
+    return {"session": session_dict}
+
+
+@api_router.get("/tools/pomodoro/sessions")
+async def get_pomodoro_sessions(
+    limit: int = 20,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get pomodoro session history"""
+    sessions = await pomodoro_sessions_collection.find(
+        {"user_id": user_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(limit)
+    
+    return {"sessions": sessions}
+
+
+@api_router.put("/tools/pomodoro/sessions/{session_id}")
+async def update_pomodoro_session(
+    session_id: str,
+    session_update: PomodoroSessionUpdate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Update a pomodoro session (complete, abandon, etc.)"""
+    update_data = {k: v for k, v in session_update.model_dump().items() if v is not None}
+    
+    if update_data.get('status') in ['completed', 'abandoned']:
+        update_data['ended_at'] = datetime.now(timezone.utc).isoformat()
+    
+    result = await pomodoro_sessions_collection.update_one(
+        {"id": session_id, "user_id": user_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    session = await pomodoro_sessions_collection.find_one({"id": session_id}, {"_id": 0})
+    return {"session": session}
+
+
+@api_router.get("/tools/pomodoro/stats")
+async def get_pomodoro_stats(
+    days: int = 7,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get pomodoro statistics for insights"""
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    
+    sessions = await pomodoro_sessions_collection.find({
+        "user_id": user_id,
+        "status": "completed",
+        "created_at": {"$gte": since.isoformat()}
+    }, {"_id": 0}).to_list(500)
+    
+    total_sessions = len(sessions)
+    total_focus_minutes = sum(s.get('actual_duration_minutes', s.get('planned_duration_minutes', 25)) for s in sessions)
+    avg_focus_rating = mean([s.get('focus_rating', 5) for s in sessions if s.get('focus_rating')]) if sessions else 0
+    total_interruptions = sum(s.get('interruptions', 0) for s in sessions)
+    
+    suggested_duration = 25
+    successful_sessions = [s for s in sessions if s.get('focus_rating', 0) >= 7]
+    if successful_sessions:
+        suggested_duration = round(mean([s.get('actual_duration_minutes', 25) for s in successful_sessions]))
+    
+    return {
+        "total_sessions": total_sessions,
+        "total_focus_minutes": total_focus_minutes,
+        "avg_focus_rating": round(avg_focus_rating, 1),
+        "total_interruptions": total_interruptions,
+        "suggested_duration_minutes": suggested_duration,
+        "days_analyzed": days
+    }
+
+
+@api_router.get("/tools/pomodoro/settings")
+async def get_pomodoro_settings(user_id: str = Depends(get_current_user_id)):
+    """Get user's pomodoro settings"""
+    settings = await pomodoro_settings_collection.find_one(
+        {"user_id": user_id},
+        {"_id": 0}
+    )
+    
+    if not settings:
+        settings = PomodoroSettings(user_id=user_id).model_dump()
+    
+    return {"settings": settings}
+
+
+@api_router.put("/tools/pomodoro/settings")
+async def update_pomodoro_settings(
+    settings: PomodoroSettings,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Update user's pomodoro settings"""
+    settings.user_id = user_id
+    settings_dict = settings.model_dump()
+    
+    await pomodoro_settings_collection.update_one(
+        {"user_id": user_id},
+        {"$set": settings_dict},
+        upsert=True
+    )
+    
+    return {"settings": settings_dict}
+
+
+# ----- Dopamine Menu -----
+
+DEFAULT_DOPAMINE_ITEMS = [
+    {"title": "Stretch for 1 minute", "description": "Quick full-body stretch", "category": "micro", "energy_level": "low", "tags": ["physical", "quick"]},
+    {"title": "Look out the window", "description": "Take a 60-second visual break", "category": "micro", "energy_level": "low", "tags": ["mindful", "quick"]},
+    {"title": "Drink water", "description": "Hydration break", "category": "micro", "energy_level": "low", "tags": ["health", "quick"]},
+    {"title": "Listen to one song", "description": "Put on your favorite upbeat song", "category": "short", "energy_level": "any", "tags": ["music", "mood-boost"]},
+    {"title": "5 jumping jacks", "description": "Quick burst of movement", "category": "micro", "energy_level": "medium", "tags": ["physical", "energizing"]},
+    {"title": "Text a friend", "description": "Send a quick hello to someone", "category": "short", "energy_level": "low", "tags": ["social", "connection"]},
+    {"title": "Doodle for 5 minutes", "description": "Free-form drawing, no rules", "category": "short", "energy_level": "low", "tags": ["creative", "relaxing"]},
+    {"title": "Walk around the block", "description": "Quick outdoor walk", "category": "medium", "energy_level": "medium", "tags": ["physical", "outdoor"]},
+    {"title": "Watch a funny video", "description": "2-3 minute comedy clip", "category": "short", "energy_level": "any", "tags": ["entertainment", "mood-boost"]},
+    {"title": "Make a cup of tea/coffee", "description": "Mindful beverage preparation", "category": "short", "energy_level": "low", "tags": ["ritual", "break"]},
+    {"title": "Do a mini dance party", "description": "Dance to one song alone", "category": "short", "energy_level": "high", "tags": ["physical", "fun"]},
+    {"title": "Play a quick puzzle game", "description": "One round of Wordle, Sudoku, etc.", "category": "short", "energy_level": "low", "tags": ["mental", "game"]},
+]
+
+
+@api_router.get("/tools/dopamine")
+async def get_dopamine_items(
+    category: Optional[str] = None,
+    energy_level: Optional[str] = None,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get user's dopamine menu items"""
+    count = await dopamine_items_collection.count_documents({"user_id": user_id})
+    
+    if count == 0:
+        for item_data in DEFAULT_DOPAMINE_ITEMS:
+            item = DopamineItem(user_id=user_id, is_custom=False, **item_data)
+            item_dict = item.model_dump()
+            item_dict['created_at'] = item_dict['created_at'].isoformat()
+            await dopamine_items_collection.insert_one(item_dict)
+    
+    query = {"user_id": user_id}
+    if category:
+        query["category"] = category
+    if energy_level and energy_level != "any":
+        query["$or"] = [{"energy_level": energy_level}, {"energy_level": "any"}]
+    
+    items = await dopamine_items_collection.find(query, {"_id": 0}).to_list(100)
+    
+    return {"items": items}
+
+
+@api_router.post("/tools/dopamine")
+async def create_dopamine_item(
+    item_data: DopamineItemCreate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Create a custom dopamine menu item"""
+    item = DopamineItem(
+        user_id=user_id,
+        is_custom=True,
+        **item_data.model_dump()
+    )
+    
+    item_dict = item.model_dump()
+    item_dict['created_at'] = item_dict['created_at'].isoformat()
+    
+    await dopamine_items_collection.insert_one(item_dict)
+    
+    return {"item": item_dict}
+
+
+@api_router.put("/tools/dopamine/{item_id}")
+async def update_dopamine_item(
+    item_id: str,
+    item_update: DopamineItemUpdate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Update a dopamine menu item"""
+    update_data = {k: v for k, v in item_update.model_dump().items() if v is not None}
+    
+    result = await dopamine_items_collection.update_one(
+        {"id": item_id, "user_id": user_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    item = await dopamine_items_collection.find_one({"id": item_id}, {"_id": 0})
+    return {"item": item}
+
+
+@api_router.post("/tools/dopamine/{item_id}/use")
+async def use_dopamine_item(
+    item_id: str,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Mark a dopamine item as used (for tracking)"""
+    result = await dopamine_items_collection.update_one(
+        {"id": item_id, "user_id": user_id},
+        {
+            "$inc": {"times_used": 1},
+            "$set": {"last_used_at": datetime.now(timezone.utc).isoformat()}
+        }
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    item = await dopamine_items_collection.find_one({"id": item_id}, {"_id": 0})
+    return {"item": item}
+
+
+@api_router.delete("/tools/dopamine/{item_id}")
+async def delete_dopamine_item(
+    item_id: str,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Delete a dopamine menu item"""
+    result = await dopamine_items_collection.delete_one({"id": item_id, "user_id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return {"message": "Item deleted"}
+
+
+@api_router.get("/tools/dopamine/random")
+async def get_random_dopamine_item(
+    category: Optional[str] = None,
+    energy_level: Optional[str] = None,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get a random dopamine item suggestion"""
+    query = {"user_id": user_id}
+    if category:
+        query["category"] = category
+    if energy_level and energy_level != "any":
+        query["$or"] = [{"energy_level": energy_level}, {"energy_level": "any"}]
+    
+    pipeline = [
+        {"$match": query},
+        {"$sample": {"size": 1}},
+        {"$project": {"_id": 0}}
+    ]
+    
+    items = await dopamine_items_collection.aggregate(pipeline).to_list(1)
+    
+    if not items:
+        return {"item": None, "message": "No items found"}
+    
+    return {"item": items[0]}
+
+
 # Health check route
 @api_router.get("/")
 async def root():
