@@ -1148,6 +1148,7 @@ const Tools = () => {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('tasks');
+  const [focusSessionTask, setFocusSessionTask] = useState(null);
 
   // Check if user has ADHD condition
   const hasADHD = user?.conditions?.includes('adhd');
@@ -1157,6 +1158,28 @@ const Tools = () => {
     { id: 'pomodoro', label: 'Focus Timer', icon: Timer },
     { id: 'dopamine', label: 'Dopamine Menu', icon: Zap },
   ];
+
+  const handleStartFocusSession = (task) => {
+    // Filter to only incomplete chunks
+    const incompleteChunks = task.chunks.filter(c => !c.is_completed);
+    if (incompleteChunks.length > 0) {
+      setFocusSessionTask({
+        ...task,
+        chunks: incompleteChunks
+      });
+    }
+  };
+
+  // Show Focus Session fullscreen if active
+  if (focusSessionTask) {
+    return (
+      <FocusSession
+        task={focusSessionTask}
+        onComplete={() => setFocusSessionTask(null)}
+        onExit={() => setFocusSessionTask(null)}
+      />
+    );
+  }
 
   return (
     <Layout>
@@ -1207,7 +1230,7 @@ const Tools = () => {
 
         {/* Tab Content */}
         <div className={`rounded-xl p-6 ${isDark ? 'bg-gray-800/50' : 'bg-white'} shadow-lg`}>
-          {activeTab === 'tasks' && <TaskChunking />}
+          {activeTab === 'tasks' && <TaskChunking onStartFocusSession={handleStartFocusSession} />}
           {activeTab === 'pomodoro' && <PomodoroTimer />}
           {activeTab === 'dopamine' && <DopamineMenu />}
         </div>
