@@ -531,6 +531,21 @@ const TaskChunking = ({ onStartFocusSession }) => {
                 {/* Expanded Chunks */}
                 {isExpanded && task.chunks?.length > 0 && (
                   <div className={`px-4 pb-4 border-t ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+                    {/* Start Focus Session Button */}
+                    {task.status !== 'completed' && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onStartFocusSession(task); }}
+                        className="w-full mt-3 py-3 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:from-purple-600 hover:via-pink-600 hover:to-orange-600 transition shadow-lg"
+                        data-testid={`start-focus-session-${task.id}`}
+                      >
+                        <Rocket className="w-5 h-5" />
+                        Start Focus Session
+                        <span className="text-sm font-normal opacity-80">
+                          (~{task.estimated_total_minutes || task.chunks.reduce((sum, c) => sum + c.estimated_minutes, 0)} min)
+                        </span>
+                      </button>
+                    )}
+                    
                     <div className="pt-3 space-y-2">
                       {task.chunks.map((chunk, idx) => (
                         <div
