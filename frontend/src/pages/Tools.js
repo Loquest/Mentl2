@@ -6,11 +6,329 @@ import api from '../utils/api';
 import { 
   Wrench, ListTodo, Timer, Zap, Plus, Check, ChevronRight, 
   Play, Pause, RotateCcw, Coffee, Star, Trash2, RefreshCw,
-  Clock, Target, TrendingUp, Sparkles, X
+  Clock, Target, TrendingUp, Sparkles, X, ChevronLeft, 
+  FastForward, PartyPopper, Rocket
 } from 'lucide-react';
 
+// ==================== Focus Session Component (Integrated Task + Timer) ====================
+const FocusSession = ({ task, onComplete, onExit }) => {
+  const { isDark } = useTheme();
+  const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+  const [isBreak, setIsBreak] = useState(false);
+  const [sessionComplete, setSessionComplete] = useState(false);
+  const [completedChunks, setCompletedChunks] = useState([]);
+  const breakDuration = 5 * 60; // 5 minute breaks
+
+  const currentChunk = task.chunks[currentChunkIndex];
+  const totalChunks = task.chunks.length;
+  const progress = ((currentChunkIndex + (isBreak ? 0.5 : 0)) / totalChunks) * 100;
+
+  // Initialize timer with first chunk's duration
+  useEffect(() => {
+    if (currentChunk && !isBreak) {
+      setTimeLeft(currentChunk.estimated_minutes * 60);
+    }
+  }, [currentChunk, isBreak]);
+
+  // Timer countdown
+  useEffect(() => {
+    if (!isRunning || timeLeft <= 0) return;
+    
+    const interval = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          handlePhaseComplete();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [isRunning, timeLeft]);
+
+  const handlePhaseComplete = async () => {
+    setIsRunning(false);
+    
+    if (isBreak) {
+      // Break finished, move to next chunk
+      if (currentChunkIndex < totalChunks - 1) {
+        setCurrentChunkIndex(prev => prev + 1);
+        setIsBreak(false);
+      }
+    } else {
+      // Work phase finished
+      setCompletedChunks(prev => [...prev, currentChunk.id]);
+      
+      // Mark chunk as complete in backend
+      try {
+        await api.put(`/tools/tasks/${task.id}/chunks/${currentChunk.id}`, {
+          is_completed: true
+        });
+      } catch (err) {
+        console.error('Error completing chunk:', err);
+      }
+
+      // Check if all chunks done
+      if (currentChunkIndex >= totalChunks - 1) {
+        setSessionComplete(true);
+      } else {
+        // Start break
+        setIsBreak(true);
+        setTimeLeft(breakDuration);
+      }
+    }
+  };
+
+  const skipToNext = () => {
+    if (isBreak) {
+      setIsBreak(false);
+      if (currentChunkIndex < totalChunks - 1) {
+        setCurrentChunkIndex(prev => prev + 1);
+      }
+    } else {
+      handlePhaseComplete();
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const totalDuration = isBreak ? breakDuration : (currentChunk?.estimated_minutes * 60 || 0);
+  const timerProgress = totalDuration > 0 ? ((totalDuration - timeLeft) / totalDuration) * 100 : 0;
+
+  // Session Complete Screen
+  if (sessionComplete) {
+    return (
+      <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
+        <div className="text-center max-w-md">
+          <div className="mb-6">
+            <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center animate-bounce">
+              <PartyPopper className="w-12 h-12 text-white" />
+            </div>
+            <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Amazing Work! 🎉
+            </h1>
+            <p className={`text-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              You completed all {totalChunks} chunks of
+            </p>
+            <p className={`text-xl font-semibold mt-1 ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
+              "{task.title}"
+            </p>
+          </div>
+          
+          <div className={`p-4 rounded-xl mb-6 ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+            <div className="grid grid-cols-2 gap-4 text-center">
+              <div>
+                <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {task.estimated_total_minutes || totalChunks * 10}
+                </p>
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Minutes focused</p>
+              </div>
+              <div>
+                <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {totalChunks}
+                </p>
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Chunks completed</p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => { onComplete(); onExit(); }}
+            className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-bold text-lg hover:from-purple-600 hover:to-pink-600 transition"
+            data-testid="focus-session-done-btn"
+          >
+            Done! Back to Tasks
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`fixed inset-0 z-50 flex flex-col ${isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-purple-50 to-pink-50'}`} data-testid="focus-session">
+      {/* Header */}
+      <div className={`p-4 flex items-center justify-between border-b ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
+        <button
+          onClick={onExit}
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isDark ? 'text-gray-400 hover:bg-gray-800' : 'text-gray-600 hover:bg-white'}`}
+          data-testid="focus-session-exit-btn"
+        >
+          <ChevronLeft className="w-5 h-5" />
+          Exit Session
+        </button>
+        <div className="text-center">
+          <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            {task.title}
+          </p>
+          <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+            Chunk {currentChunkIndex + 1} of {totalChunks}
+          </p>
+        </div>
+        <div className="w-24" /> {/* Spacer for alignment */}
+      </div>
+
+      {/* Progress Bar */}
+      <div className={`h-2 ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`}>
+        <div 
+          className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col items-center justify-center p-6">
+        {/* Phase Indicator */}
+        <div className={`mb-4 px-4 py-2 rounded-full ${
+          isBreak 
+            ? isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-100 text-green-700'
+            : isDark ? 'bg-purple-900/50 text-purple-400' : 'bg-purple-100 text-purple-700'
+        }`}>
+          {isBreak ? '☕ Break Time' : '🎯 Focus Time'}
+        </div>
+
+        {/* Current Task Display */}
+        {!isBreak && currentChunk && (
+          <div className={`w-full max-w-md mb-8 p-6 rounded-2xl ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
+            <div className="flex items-start gap-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
+                isDark ? 'bg-purple-900 text-purple-400' : 'bg-purple-100 text-purple-600'
+              }`}>
+                {currentChunkIndex + 1}
+              </div>
+              <div className="flex-1">
+                <h2 className={`text-xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {currentChunk.title}
+                </h2>
+                {currentChunk.description && (
+                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {currentChunk.description}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isBreak && (
+          <div className={`w-full max-w-md mb-8 p-6 rounded-2xl text-center ${isDark ? 'bg-green-900/30' : 'bg-green-50'}`}>
+            <Coffee className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
+            <h2 className={`text-xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Take a Break!
+            </h2>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              Stretch, hydrate, rest your eyes
+            </p>
+            {currentChunkIndex < totalChunks - 1 && (
+              <p className={`text-xs mt-2 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                Next up: {task.chunks[currentChunkIndex + 1]?.title}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Timer Display */}
+        <div className="relative w-56 h-56 mb-8">
+          <svg className="w-full h-full transform -rotate-90">
+            <circle
+              cx="112"
+              cy="112"
+              r="100"
+              stroke={isDark ? '#374151' : '#e5e7eb'}
+              strokeWidth="12"
+              fill="none"
+            />
+            <circle
+              cx="112"
+              cy="112"
+              r="100"
+              stroke={isBreak ? '#10b981' : '#8b5cf6'}
+              strokeWidth="12"
+              fill="none"
+              strokeLinecap="round"
+              strokeDasharray={628}
+              strokeDashoffset={628 - (628 * timerProgress) / 100}
+              className="transition-all duration-1000"
+            />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className={`text-5xl font-bold tabular-nums ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {formatTime(timeLeft)}
+            </span>
+            <span className={`text-sm mt-1 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+              {isBreak ? 'until next chunk' : `${currentChunk?.estimated_minutes || 0} min chunk`}
+            </span>
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={skipToNext}
+            className={`p-3 rounded-full ${isDark ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100'} shadow-lg`}
+            title={isBreak ? "Skip break" : "Complete early"}
+            data-testid="focus-session-skip-btn"
+          >
+            <FastForward className="w-6 h-6" />
+          </button>
+          <button
+            onClick={() => setIsRunning(!isRunning)}
+            className={`p-5 rounded-full shadow-xl ${
+              isBreak
+                ? 'bg-gradient-to-br from-green-400 to-emerald-500'
+                : 'bg-gradient-to-br from-purple-500 to-pink-500'
+            } text-white hover:scale-105 transition-transform`}
+            data-testid="focus-session-toggle-btn"
+          >
+            {isRunning ? <Pause className="w-10 h-10" /> : <Play className="w-10 h-10 ml-1" />}
+          </button>
+          <button
+            onClick={() => setTimeLeft(isBreak ? breakDuration : (currentChunk?.estimated_minutes * 60 || 0))}
+            className={`p-3 rounded-full ${isDark ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100'} shadow-lg`}
+            title="Reset timer"
+            data-testid="focus-session-reset-btn"
+          >
+            <RotateCcw className="w-6 h-6" />
+          </button>
+        </div>
+      </div>
+
+      {/* Chunk Progress at Bottom */}
+      <div className={`p-4 border-t ${isDark ? 'border-gray-800 bg-gray-800/50' : 'border-gray-200 bg-white/80'}`}>
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {task.chunks.map((chunk, idx) => {
+            const isCompleted = completedChunks.includes(chunk.id) || chunk.is_completed;
+            const isCurrent = idx === currentChunkIndex && !isBreak;
+            
+            return (
+              <div
+                key={chunk.id}
+                className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-medium transition ${
+                  isCompleted
+                    ? isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-100 text-green-700'
+                    : isCurrent
+                    ? isDark ? 'bg-purple-900 text-purple-300 ring-2 ring-purple-500' : 'bg-purple-100 text-purple-700 ring-2 ring-purple-500'
+                    : isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {isCompleted ? '✓' : idx + 1}. {chunk.title.slice(0, 15)}{chunk.title.length > 15 ? '...' : ''}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ==================== Task Chunking Component ====================
-const TaskChunking = () => {
+const TaskChunking = ({ onStartFocusSession }) => {
   const { isDark } = useTheme();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
