@@ -2684,6 +2684,258 @@ async def get_random_dopamine_item(
     return {"item": items[0]}
 
 
+# ----- Phase 2: Time Blindness Guard -----
+
+@api_router.get("/tools/time-blindness/stats")
+async def get_time_blindness_stats(
+    days: int = 30,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get time estimation accuracy stats"""
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    
+    # Get completed tasks with both estimated and actual time
+    tasks = await tasks_collection.find({
+        "user_id": user_id,
+        "status": "completed",
+        "estimated_total_minutes": {"$exists": True, "$ne": None},
+        "created_at": {"$gte": since.isoformat()}
+    }, {"_id": 0}).to_list(100)
+    
+    # Get completed pomodoro sessions
+    sessions = await pomodoro_sessions_collection.find({
+        "user_id": user_id,
+        "status": "completed",
+        "created_at": {"$gte": since.isoformat()}
+    }, {"_id": 0}).to_list(500)
+    
+    # Calculate stats
+    task_estimates = []
+    for task in tasks:
+        estimated = task.get('estimated_total_minutes', 0)
+        # Calculate actual time from chunks or session data
+        actual = task.get('actual_total_minutes', estimated)  # Default to estimate if no actual
+        if estimated > 0:
+            task_estimates.append({
+                'title': task.get('title'),
+                'estimated': estimated,
+                'actual': actual,
+                'accuracy': round((min(estimated, actual) / max(estimated, actual)) * 100, 1) if max(estimated, actual) > 0 else 100
+            })
+    
+    # Overall accuracy
+    avg_accuracy = mean([t['accuracy'] for t in task_estimates]) if task_estimates else 0
+    
+    # Pomodoro stats
+    total_pomodoro_time = sum(s.get('actual_duration_minutes', s.get('planned_duration_minutes', 25)) for s in sessions)
+    
+    return {
+        "days_analyzed": days,
+        "tasks_completed": len(tasks),
+        "task_estimates": task_estimates[-10:],  # Last 10 tasks
+        "average_accuracy": round(avg_accuracy, 1),
+        "total_focus_time_minutes": total_pomodoro_time,
+        "pomodoro_sessions": len(sessions),
+        "estimation_trend": "improving" if avg_accuracy > 70 else "needs_work"
+    }
+
+
+# ----- Phase 2: Energy-Aware Scheduling -----
+
+@api_router.get("/tools/energy/patterns")
+async def get_energy_patterns(
+    days: int = 30,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Analyze energy patterns from mood logs and pomodoro sessions"""
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    
+    # Get mood logs
+    mood_logs = await mood_logs_collection.find({
+        "user_id": user_id,
+        "timestamp": {"$gte": since.isoformat()}
+    }, {"_id": 0}).to_list(500)
+    
+    # Get successful pomodoro sessions
+    sessions = await pomodoro_sessions_collection.find({
+        "user_id": user_id,
+        "status": "completed",
+        "focus_rating": {"$gte": 7},
+        "created_at": {"$gte": since.isoformat()}
+    }, {"_id": 0}).to_list(500)
+    
+    # Analyze by hour of day
+    hour_energy = {}
+    for log in mood_logs:
+        try:
+            ts = datetime.fromisoformat(log['timestamp'].replace('Z', '+00:00'))
+            hour = ts.hour
+            energy = log.get('energy', 5)
+            mood = log.get('mood', 5)
+            if hour not in hour_energy:
+                hour_energy[hour] = {'energy': [], 'mood': [], 'focus_sessions': 0}
+            hour_energy[hour]['energy'].append(energy)
+            hour_energy[hour]['mood'].append(mood)
+        except:
+            continue
+    
+    # Count successful focus sessions by hour
+    for session in sessions:
+        try:
+            ts = datetime.fromisoformat(session['started_at'].replace('Z', '+00:00'))
+            hour = ts.hour
+            if hour in hour_energy:
+                hour_energy[hour]['focus_sessions'] += 1
+        except:
+            continue
+    
+    # Calculate peak hours
+    hour_scores = []
+    for hour, data in hour_energy.items():
+        avg_energy = mean(data['energy']) if data['energy'] else 0
+        avg_mood = mean(data['mood']) if data['mood'] else 0
+        focus_count = data['focus_sessions']
+        # Composite score: energy (40%) + mood (30%) + focus sessions (30%)
+        score = avg_energy * 0.4 + avg_mood * 0.3 + min(focus_count * 2, 10) * 0.3
+        hour_scores.append({
+            'hour': hour,
+            'avg_energy': round(avg_energy, 1),
+            'avg_mood': round(avg_mood, 1),
+            'focus_sessions': focus_count,
+            'productivity_score': round(score, 1)
+        })
+    
+    hour_scores.sort(key=lambda x: x['productivity_score'], reverse=True)
+    
+    # Identify peak windows
+    peak_hours = [h for h in hour_scores if h['productivity_score'] >= 6][:3]
+    low_hours = [h for h in sorted(hour_scores, key=lambda x: x['productivity_score'])][:3]
+    
+    # Time of day recommendations
+    def get_time_period(hour):
+        if 5 <= hour < 12:
+            return "morning"
+        elif 12 <= hour < 17:
+            return "afternoon"
+        elif 17 <= hour < 21:
+            return "evening"
+        else:
+            return "night"
+    
+    peak_periods = list(set(get_time_period(h['hour']) for h in peak_hours)) if peak_hours else ["morning"]
+    
+    return {
+        "days_analyzed": days,
+        "hourly_patterns": sorted(hour_scores, key=lambda x: x['hour']),
+        "peak_hours": peak_hours,
+        "low_energy_hours": low_hours,
+        "peak_periods": peak_periods,
+        "recommendation": f"Your peak productivity is during the {', '.join(peak_periods)}. Schedule demanding tasks then!"
+    }
+
+
+# ----- Phase 2: Rewards & Streaks -----
+
+@api_router.get("/tools/rewards/stats")
+async def get_reward_stats(
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get gamification stats: streaks, badges, achievements"""
+    today = datetime.now(timezone.utc).date()
+    
+    # Get all tasks and sessions
+    all_tasks = await tasks_collection.find(
+        {"user_id": user_id, "status": "completed"},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    all_sessions = await pomodoro_sessions_collection.find(
+        {"user_id": user_id, "status": "completed"},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    # Calculate current streak (consecutive days with activity)
+    activity_dates = set()
+    for task in all_tasks:
+        try:
+            completed_at = task.get('completed_at')
+            if completed_at:
+                date = datetime.fromisoformat(completed_at.replace('Z', '+00:00')).date()
+                activity_dates.add(date)
+        except:
+            continue
+    
+    for session in all_sessions:
+        try:
+            ended_at = session.get('ended_at')
+            if ended_at:
+                date = datetime.fromisoformat(ended_at.replace('Z', '+00:00')).date()
+                activity_dates.add(date)
+        except:
+            continue
+    
+    # Calculate streak
+    current_streak = 0
+    check_date = today
+    while check_date in activity_dates or (check_date == today and len(activity_dates) > 0):
+        if check_date in activity_dates:
+            current_streak += 1
+        check_date -= timedelta(days=1)
+        if current_streak > 0 and check_date not in activity_dates:
+            break
+    
+    # Total stats
+    total_tasks_completed = len(all_tasks)
+    total_chunks_completed = sum(len([c for c in t.get('chunks', []) if c.get('is_completed')]) for t in all_tasks)
+    total_focus_minutes = sum(s.get('actual_duration_minutes', s.get('planned_duration_minutes', 25)) for s in all_sessions)
+    total_sessions = len(all_sessions)
+    
+    # Badges/achievements
+    badges = []
+    
+    if total_tasks_completed >= 1:
+        badges.append({"id": "first_task", "name": "First Step", "description": "Completed your first task", "icon": "rocket"})
+    if total_tasks_completed >= 10:
+        badges.append({"id": "task_master_10", "name": "Task Master", "description": "Completed 10 tasks", "icon": "trophy"})
+    if total_tasks_completed >= 50:
+        badges.append({"id": "task_master_50", "name": "Task Champion", "description": "Completed 50 tasks", "icon": "crown"})
+    
+    if total_sessions >= 10:
+        badges.append({"id": "focus_warrior", "name": "Focus Warrior", "description": "Completed 10 focus sessions", "icon": "flame"})
+    if total_sessions >= 50:
+        badges.append({"id": "focus_master", "name": "Focus Master", "description": "Completed 50 focus sessions", "icon": "zap"})
+    
+    if current_streak >= 3:
+        badges.append({"id": "streak_3", "name": "On Fire", "description": "3-day streak", "icon": "fire"})
+    if current_streak >= 7:
+        badges.append({"id": "streak_7", "name": "Weekly Warrior", "description": "7-day streak", "icon": "star"})
+    if current_streak >= 30:
+        badges.append({"id": "streak_30", "name": "Unstoppable", "description": "30-day streak", "icon": "medal"})
+    
+    if total_focus_minutes >= 60:
+        badges.append({"id": "hour_focus", "name": "Hour of Power", "description": "1 hour total focus time", "icon": "clock"})
+    if total_focus_minutes >= 600:
+        badges.append({"id": "ten_hour_focus", "name": "Focus Legend", "description": "10 hours total focus time", "icon": "award"})
+    
+    # Weekly progress (last 7 days)
+    week_ago = today - timedelta(days=7)
+    weekly_tasks = len([t for t in all_tasks if t.get('completed_at') and datetime.fromisoformat(t['completed_at'].replace('Z', '+00:00')).date() > week_ago])
+    weekly_sessions = len([s for s in all_sessions if s.get('ended_at') and datetime.fromisoformat(s['ended_at'].replace('Z', '+00:00')).date() > week_ago])
+    
+    return {
+        "current_streak": current_streak,
+        "total_tasks_completed": total_tasks_completed,
+        "total_chunks_completed": total_chunks_completed,
+        "total_focus_minutes": total_focus_minutes,
+        "total_sessions": total_sessions,
+        "badges": badges,
+        "weekly_tasks": weekly_tasks,
+        "weekly_sessions": weekly_sessions,
+        "level": 1 + (total_tasks_completed // 5) + (total_sessions // 10),
+        "xp": total_tasks_completed * 10 + total_sessions * 5 + total_chunks_completed * 2
+    }
+
+
 # Health check route
 @api_router.get("/")
 async def root():
