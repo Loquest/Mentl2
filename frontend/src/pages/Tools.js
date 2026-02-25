@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
@@ -7,8 +7,64 @@ import {
   Wrench, ListTodo, Timer, Zap, Plus, Check, ChevronRight, 
   Play, Pause, RotateCcw, Coffee, Star, Trash2, RefreshCw,
   Clock, Target, TrendingUp, Sparkles, X, ChevronLeft, 
-  FastForward, PartyPopper, Rocket
+  FastForward, PartyPopper, Rocket, Volume2, VolumeX, 
+  Battery, BatteryLow, BatteryMedium, BatteryFull, Flame,
+  Award, Trophy, Zap as Lightning, Calendar, Sun, Moon, Sunset
 } from 'lucide-react';
+
+// Sound notification utility
+const playNotificationSound = (type = 'complete') => {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    if (type === 'complete') {
+      // Pleasant completion chime (two ascending tones)
+      oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+      oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.15); // E5
+      oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.3); // G5
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.5);
+    } else if (type === 'break') {
+      // Soft bell for break time
+      oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4
+      oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime + 0.2); // C5
+      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.4);
+    } else if (type === 'celebration') {
+      // Victory fanfare
+      const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+      notes.forEach((freq, i) => {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.frequency.setValueAtTime(freq, audioContext.currentTime + i * 0.12);
+        gain.gain.setValueAtTime(0.25, audioContext.currentTime + i * 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + i * 0.12 + 0.3);
+        osc.start(audioContext.currentTime + i * 0.12);
+        osc.stop(audioContext.currentTime + i * 0.12 + 0.3);
+      });
+    }
+  } catch (e) {
+    console.log('Audio not supported:', e);
+  }
+};
+
+// Vibration utility
+const vibrate = (pattern = [200]) => {
+  if ('vibrate' in navigator) {
+    navigator.vibrate(pattern);
+  }
+};
 
 // ==================== Focus Session Component (Integrated Task + Timer) ====================
 const FocusSession = ({ task, onComplete, onExit }) => {
