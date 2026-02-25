@@ -112,19 +112,24 @@ Build a comprehensive Mental Health Companion App for individuals with Bipolar, 
 - [x] Tools nav item in sidebar and mobile bottom nav
 - [x] 12 pre-seeded dopamine activities
 - [x] Full dark mode support
+- [x] Focus Session Integration - Task Chunker + Pomodoro working together
+- [x] Sound notifications (Web Audio API) and vibration alerts
+
+#### ADHD Tools - Phase 2 (February 2025)
+- [x] Time Blindness Guard - Time estimation accuracy tracking
+- [x] Energy-Aware Scheduling - Peak productivity windows based on mood data
+- [x] Reward-Based Completion Feedback - Streaks, badges, XP, levels gamification
+- [x] All 6 tabs in Tools page (Task Chunker, Focus Timer, Dopamine Menu, Time Guard, Energy, Rewards)
 
 ### 🔄 In Progress
 - None
 
-### ✅ Recently Completed (January 2025)
-- [x] Full dark mode support for all pages (Dashboard, Insights, Chat, Settings, etc.) - VERIFIED
-- [x] Web Push notification service worker and Settings UI implementation - VERIFIED
-- [x] Onboarding tutorial carousel with 4 slides - VERIFIED
-- [x] ADHD Tools Phase 1: Task Chunking, Pomodoro Timer, Dopamine Menu - VERIFIED
+### ✅ Recently Completed (February 2025)
+- [x] Sound notifications/vibration for Focus Session phase completion - VERIFIED
+- [x] ADHD Tools Phase 2: Time Blindness Guard, Energy Scheduling, Rewards Center - VERIFIED
 
 ### 📋 Backlog (P1 - High Priority)
-- [ ] ADHD Tools Phase 2: Time Blindness Guard, Energy-Aware Scheduling, Reward-Based Completion Feedback
-- [ ] ADHD Tools Phase 3: Task Initiation Prompting, Forgetfulness Recovery, Distraction Shield, Body Doubling
+- [ ] ADHD Tools Phase 3: Task Initiation Prompting, Forgetfulness Recovery, Distraction Shield, Body Doubling (AI companion)
 
 ### 📋 Backlog (P2 - Medium Priority)
 - [ ] Weekly mood summary email reports
