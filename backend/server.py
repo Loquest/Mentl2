@@ -2712,15 +2712,15 @@ async def get_time_blindness_stats(
     # Calculate stats
     task_estimates = []
     for task in tasks:
-        estimated = task.get('estimated_total_minutes', 0)
+        estimated = task.get('estimated_total_minutes') or 0
         # Calculate actual time from chunks or session data
-        actual = task.get('actual_total_minutes', estimated)  # Default to estimate if no actual
-        if estimated > 0:
+        actual = task.get('actual_total_minutes') or estimated  # Default to estimate if no actual
+        if estimated and estimated > 0 and actual and actual > 0:
             task_estimates.append({
                 'title': task.get('title'),
                 'estimated': estimated,
                 'actual': actual,
-                'accuracy': round((min(estimated, actual) / max(estimated, actual)) * 100, 1) if max(estimated, actual) > 0 else 100
+                'accuracy': round((min(estimated, actual) / max(estimated, actual)) * 100, 1)
             })
     
     # Overall accuracy
