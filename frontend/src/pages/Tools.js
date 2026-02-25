@@ -75,6 +75,7 @@ const FocusSession = ({ task, onComplete, onExit }) => {
   const [isBreak, setIsBreak] = useState(false);
   const [sessionComplete, setSessionComplete] = useState(false);
   const [completedChunks, setCompletedChunks] = useState([]);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const breakDuration = 5 * 60; // 5 minute breaks
 
   const currentChunk = task.chunks[currentChunkIndex];
