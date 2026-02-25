@@ -2776,7 +2776,7 @@ async def get_energy_patterns(
                 hour_energy[hour] = {'energy': [], 'mood': [], 'focus_sessions': 0}
             hour_energy[hour]['energy'].append(energy)
             hour_energy[hour]['mood'].append(mood)
-        except:
+        except Exception:
             continue
     
     # Count successful focus sessions by hour
@@ -2786,7 +2786,7 @@ async def get_energy_patterns(
             hour = ts.hour
             if hour in hour_energy:
                 hour_energy[hour]['focus_sessions'] += 1
-        except:
+        except Exception:
             continue
     
     # Calculate peak hours
@@ -2862,7 +2862,7 @@ async def get_reward_stats(
             if completed_at:
                 date = datetime.fromisoformat(completed_at.replace('Z', '+00:00')).date()
                 activity_dates.add(date)
-        except:
+        except Exception:
             continue
     
     for session in all_sessions:
@@ -2871,7 +2871,7 @@ async def get_reward_stats(
             if ended_at:
                 date = datetime.fromisoformat(ended_at.replace('Z', '+00:00')).date()
                 activity_dates.add(date)
-        except:
+        except Exception:
             continue
     
     # Calculate streak
