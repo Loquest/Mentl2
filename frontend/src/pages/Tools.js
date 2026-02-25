@@ -111,6 +111,10 @@ const FocusSession = ({ task, onComplete, onExit }) => {
     
     if (isBreak) {
       // Break finished, move to next chunk
+      if (soundEnabled) {
+        playNotificationSound('complete');
+        vibrate([100, 50, 100]);
+      }
       if (currentChunkIndex < totalChunks - 1) {
         setCurrentChunkIndex(prev => prev + 1);
         setIsBreak(false);
@@ -118,6 +122,12 @@ const FocusSession = ({ task, onComplete, onExit }) => {
     } else {
       // Work phase finished
       setCompletedChunks(prev => [...prev, currentChunk.id]);
+      
+      // Play sound and vibrate
+      if (soundEnabled) {
+        playNotificationSound('break');
+        vibrate([200, 100, 200]);
+      }
       
       // Mark chunk as complete in backend
       try {
@@ -130,6 +140,10 @@ const FocusSession = ({ task, onComplete, onExit }) => {
 
       // Check if all chunks done
       if (currentChunkIndex >= totalChunks - 1) {
+        if (soundEnabled) {
+          playNotificationSound('celebration');
+          vibrate([100, 50, 100, 50, 200]);
+        }
         setSessionComplete(true);
       } else {
         // Start break
