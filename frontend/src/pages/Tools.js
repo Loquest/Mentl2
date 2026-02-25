@@ -1728,6 +1728,9 @@ const Tools = () => {
           {activeTab === 'tasks' && <TaskChunking onStartFocusSession={handleStartFocusSession} />}
           {activeTab === 'pomodoro' && <PomodoroTimer />}
           {activeTab === 'dopamine' && <DopamineMenu />}
+          {activeTab === 'time' && <TimeBlindnessGuard />}
+          {activeTab === 'energy' && <EnergyScheduling />}
+          {activeTab === 'rewards' && <RewardsCenter />}
         </div>
       </div>
     </Layout>
