@@ -1222,6 +1222,419 @@ const DopamineMenu = () => {
   );
 };
 
+// ==================== Time Blindness Guard Component ====================
+const TimeBlindnessGuard = () => {
+  const { isDark } = useTheme();
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await api.get('/tools/time-blindness/stats?days=30');
+        setStats(response.data);
+      } catch (err) {
+        console.error('Error fetching time blindness stats:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <RefreshCw className="w-8 h-8 text-purple-500 animate-spin" />
+      </div>
+    );
+  }
+
+  const accuracyColor = stats?.average_accuracy >= 70 ? 'text-green-500' : stats?.average_accuracy >= 50 ? 'text-yellow-500' : 'text-red-500';
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Time Blindness Guard</h2>
+        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Track how accurate your time estimates are</p>
+      </div>
+
+      {/* Accuracy Score */}
+      <div className={`p-6 rounded-xl text-center ${isDark ? 'bg-gradient-to-br from-purple-900/50 to-pink-900/50' : 'bg-gradient-to-br from-purple-100 to-pink-100'}`}>
+        <p className={`text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Time Estimation Accuracy</p>
+        <p className={`text-6xl font-bold ${accuracyColor}`}>{stats?.average_accuracy || 0}%</p>
+        <p className={`text-sm mt-2 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+          Based on {stats?.tasks_completed || 0} completed tasks
+        </p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className={`p-4 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+          <div className="flex items-center gap-2 mb-2">
+            <Clock className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+            <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Focus Time</span>
+          </div>
+          <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            {Math.floor((stats?.total_focus_time_minutes || 0) / 60)}h {(stats?.total_focus_time_minutes || 0) % 60}m
+          </p>
+        </div>
+        <div className={`p-4 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+          <div className="flex items-center gap-2 mb-2">
+            <Target className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
+            <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Sessions</span>
+          </div>
+          <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            {stats?.pomodoro_sessions || 0}
+          </p>
+        </div>
+      </div>
+
+      {/* Recent Tasks Estimates */}
+      {stats?.task_estimates?.length > 0 && (
+        <div className={`p-4 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+          <h3 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>Recent Task Estimates</h3>
+          <div className="space-y-3">
+            {stats.task_estimates.slice(-5).reverse().map((task, idx) => (
+              <div key={idx} className={`flex items-center justify-between py-2 border-b last:border-0 ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+                <span className={`text-sm truncate flex-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  {task.title}
+                </span>
+                <div className="flex items-center gap-3 ml-2">
+                  <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                    Est: {task.estimated}m
+                  </span>
+                  <span className={`text-xs font-medium px-2 py-1 rounded ${
+                    task.accuracy >= 80 
+                      ? isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-100 text-green-700'
+                      : task.accuracy >= 60
+                      ? isDark ? 'bg-yellow-900/50 text-yellow-400' : 'bg-yellow-100 text-yellow-700'
+                      : isDark ? 'bg-red-900/50 text-red-400' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {task.accuracy}%
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tips */}
+      <div className={`p-4 rounded-xl border ${isDark ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-200'}`}>
+        <h3 className={`font-semibold mb-2 ${isDark ? 'text-blue-400' : 'text-blue-800'}`}>💡 Time Estimation Tips</h3>
+        <ul className={`text-sm space-y-1 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>
+          <li>• Multiply your first estimate by 1.5-2x (planning fallacy)</li>
+          <li>• Break large tasks into smaller chunks for better estimates</li>
+          <li>• Track actual time to improve future predictions</li>
+          <li>• Use timers to build awareness of time passing</li>
+        </ul>
+      </div>
+    </div>
+  );
+};
+
+// ==================== Energy-Aware Scheduling Component ====================
+const EnergyScheduling = () => {
+  const { isDark } = useTheme();
+  const [patterns, setPatterns] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPatterns = async () => {
+      try {
+        const response = await api.get('/tools/energy/patterns?days=30');
+        setPatterns(response.data);
+      } catch (err) {
+        console.error('Error fetching energy patterns:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPatterns();
+  }, []);
+
+  const formatHour = (hour) => {
+    if (hour === 0) return '12 AM';
+    if (hour === 12) return '12 PM';
+    if (hour < 12) return `${hour} AM`;
+    return `${hour - 12} PM`;
+  };
+
+  const getTimeIcon = (hour) => {
+    if (hour >= 5 && hour < 12) return <Sun className="w-4 h-4 text-yellow-500" />;
+    if (hour >= 12 && hour < 17) return <Sunset className="w-4 h-4 text-orange-500" />;
+    if (hour >= 17 && hour < 21) return <Sunset className="w-4 h-4 text-purple-500" />;
+    return <Moon className="w-4 h-4 text-blue-500" />;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <RefreshCw className="w-8 h-8 text-purple-500 animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Energy-Aware Scheduling</h2>
+        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Discover your peak productivity windows</p>
+      </div>
+
+      {/* Recommendation */}
+      <div className={`p-4 rounded-xl ${isDark ? 'bg-gradient-to-r from-green-900/50 to-emerald-900/50' : 'bg-gradient-to-r from-green-100 to-emerald-100'}`}>
+        <div className="flex items-start gap-3">
+          <div className={`p-2 rounded-lg ${isDark ? 'bg-green-800' : 'bg-green-200'}`}>
+            <Sparkles className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-700'}`} />
+          </div>
+          <div>
+            <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Your Recommendation</p>
+            <p className={`text-sm mt-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              {patterns?.recommendation || 'Log more mood data to get personalized recommendations!'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Peak Hours */}
+      {patterns?.peak_hours?.length > 0 && (
+        <div className={`p-4 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+          <h3 className={`font-semibold mb-3 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            <Flame className="w-5 h-5 text-orange-500" />
+            Peak Productivity Hours
+          </h3>
+          <div className="grid grid-cols-3 gap-3">
+            {patterns.peak_hours.map((hour, idx) => (
+              <div 
+                key={idx} 
+                className={`p-3 rounded-lg text-center ${
+                  idx === 0 
+                    ? isDark ? 'bg-gradient-to-br from-yellow-900/50 to-orange-900/50 border border-yellow-700' : 'bg-gradient-to-br from-yellow-100 to-orange-100 border border-yellow-300'
+                    : isDark ? 'bg-gray-700' : 'bg-gray-100'
+                }`}
+              >
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  {getTimeIcon(hour.hour)}
+                  <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{formatHour(hour.hour)}</span>
+                </div>
+                <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Energy: {hour.avg_energy}/10
+                </p>
+                <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                  {hour.focus_sessions} sessions
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Energy Chart (simplified visual) */}
+      {patterns?.hourly_patterns?.length > 0 && (
+        <div className={`p-4 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+          <h3 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>Daily Energy Pattern</h3>
+          <div className="flex items-end gap-1 h-32">
+            {patterns.hourly_patterns
+              .filter(h => h.hour >= 6 && h.hour <= 22)
+              .map((hour) => {
+                const height = (hour.productivity_score / 10) * 100;
+                const isHighEnergy = hour.productivity_score >= 6;
+                return (
+                  <div key={hour.hour} className="flex-1 flex flex-col items-center">
+                    <div 
+                      className={`w-full rounded-t transition-all ${
+                        isHighEnergy 
+                          ? 'bg-gradient-to-t from-purple-500 to-pink-500'
+                          : isDark ? 'bg-gray-700' : 'bg-gray-300'
+                      }`}
+                      style={{ height: `${Math.max(height, 10)}%` }}
+                      title={`${formatHour(hour.hour)}: ${hour.productivity_score}/10`}
+                    />
+                    <span className={`text-xs mt-1 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                      {hour.hour % 3 === 0 ? formatHour(hour.hour).replace(' ', '') : ''}
+                    </span>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      )}
+
+      {/* Low Energy Times */}
+      {patterns?.low_energy_hours?.length > 0 && (
+        <div className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+          <h3 className={`font-semibold mb-2 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            <BatteryLow className="w-5 h-5 text-yellow-500" />
+            Low Energy Times
+          </h3>
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            Schedule easier tasks or breaks during: {patterns.low_energy_hours.map(h => formatHour(h.hour)).join(', ')}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ==================== Rewards & Gamification Component ====================
+const RewardsCenter = () => {
+  const { isDark } = useTheme();
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await api.get('/tools/rewards/stats');
+        setStats(response.data);
+      } catch (err) {
+        console.error('Error fetching reward stats:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const badgeIcons = {
+    rocket: Rocket,
+    trophy: Trophy,
+    crown: Award,
+    flame: Flame,
+    zap: Lightning,
+    fire: Flame,
+    star: Star,
+    medal: Award,
+    clock: Clock,
+    award: Award
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <RefreshCw className="w-8 h-8 text-purple-500 animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Rewards Center</h2>
+        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Track your progress and earn achievements</p>
+      </div>
+
+      {/* Level & XP */}
+      <div className={`p-6 rounded-xl text-center ${isDark ? 'bg-gradient-to-br from-purple-900/50 to-pink-900/50' : 'bg-gradient-to-br from-purple-100 to-pink-100'}`}>
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <Trophy className={`w-8 h-8 ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`} />
+          <span className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Level {stats?.level || 1}</span>
+        </div>
+        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          {stats?.xp || 0} XP earned
+        </p>
+        <div className={`mt-3 h-3 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-300'}`}>
+          <div 
+            className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
+            style={{ width: `${((stats?.xp || 0) % 100)}%` }}
+          />
+        </div>
+        <p className={`text-xs mt-1 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+          {100 - ((stats?.xp || 0) % 100)} XP to next level
+        </p>
+      </div>
+
+      {/* Streak */}
+      <div className={`p-4 rounded-xl flex items-center justify-between ${
+        stats?.current_streak >= 3 
+          ? isDark ? 'bg-gradient-to-r from-orange-900/50 to-red-900/50' : 'bg-gradient-to-r from-orange-100 to-red-100'
+          : isDark ? 'bg-gray-800' : 'bg-white'
+      }`}>
+        <div className="flex items-center gap-3">
+          <div className={`p-3 rounded-xl ${stats?.current_streak >= 3 ? 'bg-orange-500' : isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
+            <Flame className={`w-6 h-6 ${stats?.current_streak >= 3 ? 'text-white' : isDark ? 'text-gray-400' : 'text-gray-600'}`} />
+          </div>
+          <div>
+            <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Current Streak</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Keep the fire burning!</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className={`text-3xl font-bold ${stats?.current_streak >= 3 ? 'text-orange-500' : isDark ? 'text-white' : 'text-gray-900'}`}>
+            {stats?.current_streak || 0}
+          </p>
+          <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>days</p>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className={`p-4 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Tasks Completed</p>
+          <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats?.total_tasks_completed || 0}</p>
+        </div>
+        <div className={`p-4 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Chunks Crushed</p>
+          <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats?.total_chunks_completed || 0}</p>
+        </div>
+        <div className={`p-4 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Focus Sessions</p>
+          <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats?.total_sessions || 0}</p>
+        </div>
+        <div className={`p-4 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total Focus Time</p>
+          <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            {Math.floor((stats?.total_focus_minutes || 0) / 60)}h {(stats?.total_focus_minutes || 0) % 60}m
+          </p>
+        </div>
+      </div>
+
+      {/* Badges */}
+      <div className={`p-4 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+        <h3 className={`font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Badges Earned ({stats?.badges?.length || 0})</h3>
+        {stats?.badges?.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {stats.badges.map((badge) => {
+              const IconComponent = badgeIcons[badge.icon] || Award;
+              return (
+                <div 
+                  key={badge.id} 
+                  className={`p-3 rounded-xl text-center ${isDark ? 'bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-700' : 'bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200'}`}
+                >
+                  <IconComponent className={`w-8 h-8 mx-auto mb-2 ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`} />
+                  <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{badge.name}</p>
+                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{badge.description}</p>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className={`text-center py-4 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+            Complete tasks and focus sessions to earn badges!
+          </p>
+        )}
+      </div>
+
+      {/* This Week */}
+      <div className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+        <h3 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>This Week</h3>
+        <div className="flex items-center gap-6">
+          <div>
+            <p className={`text-2xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>{stats?.weekly_tasks || 0}</p>
+            <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>tasks done</p>
+          </div>
+          <div>
+            <p className={`text-2xl font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>{stats?.weekly_sessions || 0}</p>
+            <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>focus sessions</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ==================== Main Tools Page ====================
 const Tools = () => {
   const { isDark } = useTheme();
@@ -1236,6 +1649,9 @@ const Tools = () => {
     { id: 'tasks', label: 'Task Chunker', icon: ListTodo },
     { id: 'pomodoro', label: 'Focus Timer', icon: Timer },
     { id: 'dopamine', label: 'Dopamine Menu', icon: Zap },
+    { id: 'time', label: 'Time Guard', icon: Clock },
+    { id: 'energy', label: 'Energy', icon: Battery },
+    { id: 'rewards', label: 'Rewards', icon: Trophy },
   ];
 
   const handleStartFocusSession = (task) => {
