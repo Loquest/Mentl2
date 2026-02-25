@@ -242,7 +242,15 @@ const FocusSession = ({ task, onComplete, onExit }) => {
             Chunk {currentChunkIndex + 1} of {totalChunks}
           </p>
         </div>
-        <div className="w-24" /> {/* Spacer for alignment */}
+        {/* Sound Toggle */}
+        <button
+          onClick={() => setSoundEnabled(!soundEnabled)}
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isDark ? 'text-gray-400 hover:bg-gray-800' : 'text-gray-600 hover:bg-white'}`}
+          title={soundEnabled ? 'Mute sounds' : 'Enable sounds'}
+          data-testid="focus-session-sound-toggle"
+        >
+          {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+        </button>
       </div>
 
       {/* Progress Bar */}
