@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/Layout';
+import { useTheme } from '../context/ThemeContext';
 import DietarySuggestions from '../components/DietarySuggestions';
 import api from '../utils/api';
 import { 
@@ -8,6 +9,7 @@ import {
 } from 'lucide-react';
 
 const Nutrition = () => {
+  const { isDark } = useTheme();
   const [preferences, setPreferences] = useState({
     diet_type: '',
     allergies: [],
@@ -107,22 +109,22 @@ const Nutrition = () => {
       <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto" data-testid="nutrition-page">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Mood-Based Nutrition</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Mood-Based Nutrition</h1>
+          <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Personalized food suggestions to support your mental well-being
           </p>
         </div>
 
         {/* Success/Error Messages */}
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 flex items-center">
+          <div className={`px-4 py-3 rounded-lg mb-6 flex items-center ${isDark ? 'bg-green-900/30 border border-green-700 text-green-400' : 'bg-green-50 border border-green-200 text-green-700'}`}>
             <Check className="h-5 w-5 mr-2" />
             {success}
           </div>
         )}
         
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center">
+          <div className={`px-4 py-3 rounded-lg mb-6 flex items-center ${isDark ? 'bg-red-900/30 border border-red-700 text-red-400' : 'bg-red-50 border border-red-200 text-red-700'}`}>
             <AlertCircle className="h-5 w-5 mr-2" />
             {error}
           </div>
@@ -130,13 +132,13 @@ const Nutrition = () => {
 
         {/* Preferences Setup Banner */}
         {!isConfigured && !showPrefsForm && (
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 mb-6">
+          <div className={`rounded-xl p-6 mb-6 border ${isDark ? 'bg-green-900/20 border-green-800' : 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'}`}>
             <div className="flex items-start justify-between">
               <div className="flex items-start">
                 <Leaf className="h-8 w-8 text-green-500 mr-4" />
                 <div>
-                  <h3 className="font-semibold text-gray-900 text-lg">Set Up Your Dietary Preferences</h3>
-                  <p className="text-gray-600 mt-1">
+                  <h3 className={`font-semibold text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>Set Up Your Dietary Preferences</h3>
+                  <p className={`mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                     Tell us about your diet, allergies, and food preferences to get personalized suggestions 
                     that are safe and enjoyable for you.
                   </p>
@@ -156,12 +158,12 @@ const Nutrition = () => {
 
         {/* Preferences Form */}
         {showPrefsForm && (
-          <div className="bg-white rounded-xl shadow-md p-6 mb-6" data-testid="prefs-form">
+          <div className={`rounded-xl shadow-md p-6 mb-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`} data-testid="prefs-form">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Dietary Preferences</h2>
+              <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Dietary Preferences</h2>
               <button
                 onClick={() => setShowPrefsForm(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className={isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}
               >
                 <X className="h-5 w-5" />
               </button>
@@ -170,7 +172,7 @@ const Nutrition = () => {
             <div className="space-y-6">
               {/* Diet Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   Diet Type
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -182,7 +184,7 @@ const Nutrition = () => {
                       className={`p-3 rounded-lg text-sm font-medium transition ${
                         preferences.diet_type === diet.value
                           ? 'bg-green-500 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
                       {diet.label}
@@ -193,7 +195,7 @@ const Nutrition = () => {
 
               {/* Allergies */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   Allergies (select all that apply)
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -205,7 +207,7 @@ const Nutrition = () => {
                       className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${
                         preferences.allergies.includes(allergy)
                           ? 'bg-red-500 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
                       {allergy}
@@ -216,7 +218,7 @@ const Nutrition = () => {
 
               {/* Intolerances */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   Intolerances
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -228,7 +230,7 @@ const Nutrition = () => {
                       className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${
                         preferences.intolerances.includes(intolerance)
                           ? 'bg-orange-500 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
                       {intolerance}
@@ -239,7 +241,7 @@ const Nutrition = () => {
 
               {/* Foods to Avoid */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   Specific Foods to Avoid
                 </label>
                 <div className="flex gap-2 mb-2">
@@ -249,12 +251,12 @@ const Nutrition = () => {
                     onChange={(e) => setCustomAvoid(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && addCustomAvoid()}
                     placeholder="Add food to avoid..."
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    className={`flex-1 px-3 py-2 border rounded-lg text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'}`}
                   />
                   <button
                     type="button"
                     onClick={addCustomAvoid}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300"
+                    className={`px-4 py-2 rounded-lg text-sm ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                   >
                     Add
                   </button>
@@ -264,12 +266,12 @@ const Nutrition = () => {
                     {preferences.avoid_foods.map(food => (
                       <span
                         key={food}
-                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm flex items-center"
+                        className={`px-3 py-1 rounded-full text-sm flex items-center ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}
                       >
                         {food}
                         <button
                           onClick={() => toggleArrayItem('avoid_foods', food)}
-                          className="ml-2 text-gray-400 hover:text-gray-600"
+                          className={`ml-2 ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -281,7 +283,7 @@ const Nutrition = () => {
 
               {/* Preferred Cuisines */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   Preferred Cuisines
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -293,7 +295,7 @@ const Nutrition = () => {
                       className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${
                         preferences.preferred_cuisines.includes(cuisine)
                           ? 'bg-blue-500 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
                       {cuisine}
@@ -305,13 +307,13 @@ const Nutrition = () => {
               {/* Prep Time & Budget */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                     Prep Time Preference
                   </label>
                   <select
                     value={preferences.meal_prep_time}
                     onChange={(e) => setPreferences(prev => ({ ...prev, meal_prep_time: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    className={`w-full px-3 py-2 border rounded-lg ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
                   >
                     <option value="quick">Quick (&lt;15 min)</option>
                     <option value="moderate">Moderate (15-30 min)</option>
@@ -319,13 +321,13 @@ const Nutrition = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                     Budget Preference
                   </label>
                   <select
                     value={preferences.budget_preference}
                     onChange={(e) => setPreferences(prev => ({ ...prev, budget_preference: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    className={`w-full px-3 py-2 border rounded-lg ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
                   >
                     <option value="budget">Budget-Friendly</option>
                     <option value="moderate">Moderate</option>
@@ -335,11 +337,11 @@ const Nutrition = () => {
               </div>
 
               {/* Save Button */}
-              <div className="flex justify-end gap-3 pt-4 border-t">
+              <div className={`flex justify-end gap-3 pt-4 border-t ${isDark ? 'border-gray-700' : ''}`}>
                 <button
                   type="button"
                   onClick={() => setShowPrefsForm(false)}
-                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  className={`px-6 py-2 border rounded-lg ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
                 >
                   Cancel
                 </button>
@@ -361,7 +363,7 @@ const Nutrition = () => {
           <div className="mb-6 flex justify-end">
             <button
               onClick={() => setShowPrefsForm(true)}
-              className="flex items-center text-sm text-gray-600 hover:text-gray-800"
+              className={`flex items-center text-sm ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
             >
               <Settings className="h-4 w-4 mr-1" />
               Edit Dietary Preferences

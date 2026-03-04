@@ -20,5 +20,11 @@ caregiver_relationships_collection = db.caregiver_relationships
 notifications_collection = db.notifications
 push_subscriptions_collection = db.push_subscriptions
 
+# ADHD Tools Collections
+tasks_collection = db.tasks
+pomodoro_sessions_collection = db.pomodoro_sessions
+pomodoro_settings_collection = db.pomodoro_settings
+dopamine_items_collection = db.dopamine_items
+
 async def close_db_connection():
     client.close()
