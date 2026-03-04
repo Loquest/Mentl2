@@ -16,6 +16,7 @@ import Settings from './pages/Settings';
 import ActivityDetail from './pages/ActivityDetail';
 import Caregivers from './pages/Caregivers';
 import Nutrition from './pages/Nutrition';
+import Tools from './pages/Tools';
 
 import './App.css';
 
@@ -99,6 +100,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Nutrition />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tools"
+            element={
+              <ProtectedRoute>
+                <Tools />
               </ProtectedRoute>
             }
           />

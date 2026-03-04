@@ -4,6 +4,8 @@ from starlette.middleware.cors import CORSMiddleware
 import os
 import logging
 import asyncio
+import json
+import re
 from pathlib import Path
 from typing import List, Optional
 from datetime import datetime, timedelta, timezone
@@ -19,7 +21,11 @@ from models import (
     CaregiverInvitation, CaregiverInvitationCreate, CaregiverRelationship,
     CaregiverPermissionUpdate, Notification,
     DietaryPreferences, DietaryPreferencesUpdate, DietarySuggestionRequest, DietarySuggestion,
-    PushSubscription, PushSubscriptionCreate, NotificationPreferences, NotificationPreferencesUpdate
+    PushSubscription, PushSubscriptionCreate, NotificationPreferences, NotificationPreferencesUpdate,
+    # ADHD Tools
+    Task, TaskCreate, TaskUpdate, TaskChunk, ChunkUpdate,
+    PomodoroSession, PomodoroSessionCreate, PomodoroSessionUpdate, PomodoroSettings,
+    DopamineItem, DopamineItemCreate, DopamineItemUpdate
 )
 from auth import (
     get_password_hash, verify_password, create_access_token, get_current_user_id
@@ -28,12 +34,13 @@ from database import (
     users_collection, mood_logs_collection, chat_history_collection, content_collection,
     caregiver_invitations_collection, caregiver_relationships_collection, notifications_collection,
     push_subscriptions_collection,
+    # ADHD Tools
+    tasks_collection, pomodoro_sessions_collection, pomodoro_settings_collection, dopamine_items_collection,
     close_db_connection
 )
 
 # AI Chat Integration
 from emergentintegrations.llm.chat import LlmChat, UserMessage
-import json
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -457,7 +464,6 @@ def parse_dietary_response(response: str, suggestion_type: str) -> dict:
     """Parse AI response into structured suggestion"""
     try:
         # Try to extract JSON from response
-        import re
         json_match = re.search(r'\{[\s\S]*\}', response)
         if json_match:
             suggestion_data = json.loads(json_match.group())
@@ -668,9 +674,6 @@ Provide ONLY valid JSON, no markdown."""
         ai_response = await chat.send_message(user_message)
         
         # Parse AI response as JSON
-        import json
-        import re
-        
         # Try to extract JSON from response
         json_match = re.search(r'\{.*\}', ai_response, re.DOTALL)
         if json_match:
@@ -818,9 +821,6 @@ Provide exactly 4-5 suggestions in valid JSON format."""
         ai_response = await chat.send_message(user_message)
         
         # Parse AI response as JSON
-        import json
-        import re
-        
         # Try to extract JSON from response (in case AI adds markdown)
         json_match = re.search(r'\[.*\]', ai_response, re.DOTALL)
         if json_match:
@@ -2202,6 +2202,738 @@ async def get_vapid_public_key():
     # In production, generate and store VAPID keys
     # For now, return a placeholder
     return {"publicKey": os.getenv("VAPID_PUBLIC_KEY", "")}
+
+
+# ==================== ADHD TOOLS ENDPOINTS ====================
+
+# ----- Task Chunking Engine -----
+
+@api_router.post("/tools/tasks")
+async def create_task(
+    task_data: TaskCreate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Create a new task, optionally using AI to break it into chunks"""
+    task = Task(
+        user_id=user_id,
+        title=task_data.title,
+        description=task_data.description,
+        priority=task_data.priority,
+        due_date=task_data.due_date,
+        tags=task_data.tags
+    )
+    
+    # Use AI to break task into chunks if requested
+    if task_data.auto_chunk and task_data.title:
+        try:
+            api_key = os.getenv("EMERGENT_LLM_KEY")
+            if api_key:
+                chunk_prompt = f"""Break this task into small, concrete, actionable steps for someone with ADHD.
+Task: {task_data.title}
+{f"Description: {task_data.description}" if task_data.description else ""}
+
+Requirements:
+- Each step should take 5-15 minutes maximum
+- Steps should be specific and actionable (start with a verb)
+- Include 3-7 steps
+- Order from easiest to hardest to build momentum
+- First step should be trivially easy to start (reduce initiation friction)
+
+Return as JSON array:
+[
+  {{"title": "Step title", "description": "Brief description", "estimated_minutes": 5}},
+  ...
+]"""
+                
+                chat = LlmChat(
+                    api_key=api_key,
+                    session_id=f"task_chunk_{user_id}_{task.id}",
+                    system_message="You are an ADHD task coach. Break tasks into small, actionable steps. Return only valid JSON."
+                ).with_model("openai", "gpt-5.2")
+                
+                user_message = UserMessage(text=chunk_prompt)
+                ai_response = await chat.send_message(user_message)
+                
+                # Parse chunks from AI response
+                json_match = re.search(r'\[.*\]', ai_response, re.DOTALL)
+                if json_match:
+                    chunks_data = json.loads(json_match.group(0))
+                    task.chunks = [
+                        TaskChunk(
+                            title=chunk.get("title", ""),
+                            description=chunk.get("description"),
+                            estimated_minutes=chunk.get("estimated_minutes", 5),
+                            order=idx
+                        )
+                        for idx, chunk in enumerate(chunks_data)
+                    ]
+                    task.estimated_total_minutes = sum(c.estimated_minutes for c in task.chunks)
+        except Exception as e:
+            logger.error(f"Error chunking task: {e}")
+    
+    task_dict = task.model_dump()
+    task_dict['created_at'] = task_dict['created_at'].isoformat()
+    task_dict['updated_at'] = task_dict['updated_at'].isoformat()
+    if task_dict.get('due_date'):
+        task_dict['due_date'] = task_dict['due_date'].isoformat()
+    for chunk in task_dict.get('chunks', []):
+        if chunk.get('completed_at'):
+            chunk['completed_at'] = chunk['completed_at'].isoformat()
+    
+    await tasks_collection.insert_one(task_dict)
+    task_dict.pop('_id', None)  # Remove MongoDB _id before returning
+    
+    return {"task": task_dict}
+
+
+@api_router.get("/tools/tasks")
+async def get_tasks(
+    status: Optional[str] = None,
+    priority: Optional[str] = None,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get all tasks for the current user"""
+    query = {"user_id": user_id}
+    if status:
+        query["status"] = status
+    if priority:
+        query["priority"] = priority
+    
+    tasks = await tasks_collection.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return {"tasks": tasks}
+
+
+@api_router.get("/tools/tasks/{task_id}")
+async def get_task(
+    task_id: str,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get a specific task"""
+    task = await tasks_collection.find_one(
+        {"id": task_id, "user_id": user_id},
+        {"_id": 0}
+    )
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return {"task": task}
+
+
+@api_router.put("/tools/tasks/{task_id}")
+async def update_task(
+    task_id: str,
+    task_update: TaskUpdate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Update a task"""
+    update_data = {k: v for k, v in task_update.model_dump().items() if v is not None}
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    if 'due_date' in update_data and update_data['due_date']:
+        update_data['due_date'] = update_data['due_date'].isoformat()
+    
+    if update_data.get('status') == 'completed':
+        update_data['completed_at'] = datetime.now(timezone.utc).isoformat()
+    
+    result = await tasks_collection.update_one(
+        {"id": task_id, "user_id": user_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    task = await tasks_collection.find_one({"id": task_id}, {"_id": 0})
+    return {"task": task}
+
+
+@api_router.put("/tools/tasks/{task_id}/chunks/{chunk_id}")
+async def update_chunk(
+    task_id: str,
+    chunk_id: str,
+    chunk_update: ChunkUpdate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Update a specific chunk's completion status"""
+    task = await tasks_collection.find_one({"id": task_id, "user_id": user_id})
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    chunks = task.get('chunks', [])
+    chunk_found = False
+    completed_count = 0
+    
+    for chunk in chunks:
+        if chunk['id'] == chunk_id:
+            chunk['is_completed'] = chunk_update.is_completed
+            chunk['completed_at'] = datetime.now(timezone.utc).isoformat() if chunk_update.is_completed else None
+            chunk_found = True
+        if chunk.get('is_completed'):
+            completed_count += 1
+    
+    if not chunk_found:
+        raise HTTPException(status_code=404, detail="Chunk not found")
+    
+    update_data = {
+        'chunks': chunks,
+        'updated_at': datetime.now(timezone.utc).isoformat()
+    }
+    
+    if completed_count == len(chunks) and len(chunks) > 0:
+        update_data['status'] = 'completed'
+        update_data['completed_at'] = datetime.now(timezone.utc).isoformat()
+    elif completed_count > 0:
+        update_data['status'] = 'in_progress'
+    
+    await tasks_collection.update_one(
+        {"id": task_id},
+        {"$set": update_data}
+    )
+    
+    task = await tasks_collection.find_one({"id": task_id}, {"_id": 0})
+    return {"task": task}
+
+
+@api_router.delete("/tools/tasks/{task_id}")
+async def delete_task(
+    task_id: str,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Delete a task"""
+    result = await tasks_collection.delete_one({"id": task_id, "user_id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return {"message": "Task deleted"}
+
+
+# ----- Adaptive Pomodoro System -----
+
+@api_router.post("/tools/pomodoro/sessions")
+async def create_pomodoro_session(
+    session_data: PomodoroSessionCreate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Create a new pomodoro session"""
+    session = PomodoroSession(
+        user_id=user_id,
+        task_id=session_data.task_id,
+        task_title=session_data.task_title,
+        planned_duration_minutes=session_data.planned_duration_minutes,
+        break_duration_minutes=session_data.break_duration_minutes,
+        status="active",
+        started_at=datetime.now(timezone.utc)
+    )
+    
+    session_dict = session.model_dump()
+    session_dict['created_at'] = session_dict['created_at'].isoformat()
+    session_dict['started_at'] = session_dict['started_at'].isoformat()
+    
+    await pomodoro_sessions_collection.insert_one(session_dict)
+    session_dict.pop('_id', None)
+    
+    return {"session": session_dict}
+
+
+@api_router.get("/tools/pomodoro/sessions")
+async def get_pomodoro_sessions(
+    limit: int = 20,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get pomodoro session history"""
+    sessions = await pomodoro_sessions_collection.find(
+        {"user_id": user_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(limit)
+    
+    return {"sessions": sessions}
+
+
+@api_router.put("/tools/pomodoro/sessions/{session_id}")
+async def update_pomodoro_session(
+    session_id: str,
+    session_update: PomodoroSessionUpdate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Update a pomodoro session (complete, abandon, etc.)"""
+    update_data = {k: v for k, v in session_update.model_dump().items() if v is not None}
+    
+    if update_data.get('status') in ['completed', 'abandoned']:
+        update_data['ended_at'] = datetime.now(timezone.utc).isoformat()
+    
+    result = await pomodoro_sessions_collection.update_one(
+        {"id": session_id, "user_id": user_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    session = await pomodoro_sessions_collection.find_one({"id": session_id}, {"_id": 0})
+    return {"session": session}
+
+
+@api_router.get("/tools/pomodoro/stats")
+async def get_pomodoro_stats(
+    days: int = 7,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get pomodoro statistics for insights"""
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    
+    sessions = await pomodoro_sessions_collection.find({
+        "user_id": user_id,
+        "status": "completed",
+        "created_at": {"$gte": since.isoformat()}
+    }, {"_id": 0}).to_list(500)
+    
+    total_sessions = len(sessions)
+    total_focus_minutes = sum(s.get('actual_duration_minutes', s.get('planned_duration_minutes', 25)) for s in sessions)
+    avg_focus_rating = mean([s.get('focus_rating', 5) for s in sessions if s.get('focus_rating')]) if sessions else 0
+    total_interruptions = sum(s.get('interruptions', 0) for s in sessions)
+    
+    suggested_duration = 25
+    successful_sessions = [s for s in sessions if s.get('focus_rating', 0) >= 7]
+    if successful_sessions:
+        suggested_duration = round(mean([s.get('actual_duration_minutes', 25) for s in successful_sessions]))
+    
+    return {
+        "total_sessions": total_sessions,
+        "total_focus_minutes": total_focus_minutes,
+        "avg_focus_rating": round(avg_focus_rating, 1),
+        "total_interruptions": total_interruptions,
+        "suggested_duration_minutes": suggested_duration,
+        "days_analyzed": days
+    }
+
+
+@api_router.get("/tools/pomodoro/settings")
+async def get_pomodoro_settings(user_id: str = Depends(get_current_user_id)):
+    """Get user's pomodoro settings"""
+    settings = await pomodoro_settings_collection.find_one(
+        {"user_id": user_id},
+        {"_id": 0}
+    )
+    
+    if not settings:
+        settings = PomodoroSettings(user_id=user_id).model_dump()
+    
+    return {"settings": settings}
+
+
+@api_router.put("/tools/pomodoro/settings")
+async def update_pomodoro_settings(
+    settings: PomodoroSettings,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Update user's pomodoro settings"""
+    settings.user_id = user_id
+    settings_dict = settings.model_dump()
+    
+    await pomodoro_settings_collection.update_one(
+        {"user_id": user_id},
+        {"$set": settings_dict},
+        upsert=True
+    )
+    
+    return {"settings": settings_dict}
+
+
+# ----- Dopamine Menu -----
+
+DEFAULT_DOPAMINE_ITEMS = [
+    {"title": "Stretch for 1 minute", "description": "Quick full-body stretch", "category": "micro", "energy_level": "low", "tags": ["physical", "quick"]},
+    {"title": "Look out the window", "description": "Take a 60-second visual break", "category": "micro", "energy_level": "low", "tags": ["mindful", "quick"]},
+    {"title": "Drink water", "description": "Hydration break", "category": "micro", "energy_level": "low", "tags": ["health", "quick"]},
+    {"title": "Listen to one song", "description": "Put on your favorite upbeat song", "category": "short", "energy_level": "any", "tags": ["music", "mood-boost"]},
+    {"title": "5 jumping jacks", "description": "Quick burst of movement", "category": "micro", "energy_level": "medium", "tags": ["physical", "energizing"]},
+    {"title": "Text a friend", "description": "Send a quick hello to someone", "category": "short", "energy_level": "low", "tags": ["social", "connection"]},
+    {"title": "Doodle for 5 minutes", "description": "Free-form drawing, no rules", "category": "short", "energy_level": "low", "tags": ["creative", "relaxing"]},
+    {"title": "Walk around the block", "description": "Quick outdoor walk", "category": "medium", "energy_level": "medium", "tags": ["physical", "outdoor"]},
+    {"title": "Watch a funny video", "description": "2-3 minute comedy clip", "category": "short", "energy_level": "any", "tags": ["entertainment", "mood-boost"]},
+    {"title": "Make a cup of tea/coffee", "description": "Mindful beverage preparation", "category": "short", "energy_level": "low", "tags": ["ritual", "break"]},
+    {"title": "Do a mini dance party", "description": "Dance to one song alone", "category": "short", "energy_level": "high", "tags": ["physical", "fun"]},
+    {"title": "Play a quick puzzle game", "description": "One round of Wordle, Sudoku, etc.", "category": "short", "energy_level": "low", "tags": ["mental", "game"]},
+]
+
+
+@api_router.get("/tools/dopamine")
+async def get_dopamine_items(
+    category: Optional[str] = None,
+    energy_level: Optional[str] = None,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get user's dopamine menu items"""
+    count = await dopamine_items_collection.count_documents({"user_id": user_id})
+    
+    if count == 0:
+        for item_data in DEFAULT_DOPAMINE_ITEMS:
+            item = DopamineItem(user_id=user_id, is_custom=False, **item_data)
+            item_dict = item.model_dump()
+            item_dict['created_at'] = item_dict['created_at'].isoformat()
+            await dopamine_items_collection.insert_one(item_dict)
+    
+    query = {"user_id": user_id}
+    if category:
+        query["category"] = category
+    if energy_level and energy_level != "any":
+        query["$or"] = [{"energy_level": energy_level}, {"energy_level": "any"}]
+    
+    items = await dopamine_items_collection.find(query, {"_id": 0}).to_list(100)
+    
+    return {"items": items}
+
+
+@api_router.post("/tools/dopamine")
+async def create_dopamine_item(
+    item_data: DopamineItemCreate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Create a custom dopamine menu item"""
+    item = DopamineItem(
+        user_id=user_id,
+        is_custom=True,
+        **item_data.model_dump()
+    )
+    
+    item_dict = item.model_dump()
+    item_dict['created_at'] = item_dict['created_at'].isoformat()
+    
+    await dopamine_items_collection.insert_one(item_dict)
+    item_dict.pop('_id', None)
+    
+    return {"item": item_dict}
+
+
+@api_router.put("/tools/dopamine/{item_id}")
+async def update_dopamine_item(
+    item_id: str,
+    item_update: DopamineItemUpdate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Update a dopamine menu item"""
+    update_data = {k: v for k, v in item_update.model_dump().items() if v is not None}
+    
+    result = await dopamine_items_collection.update_one(
+        {"id": item_id, "user_id": user_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    item = await dopamine_items_collection.find_one({"id": item_id}, {"_id": 0})
+    return {"item": item}
+
+
+@api_router.post("/tools/dopamine/{item_id}/use")
+async def use_dopamine_item(
+    item_id: str,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Mark a dopamine item as used (for tracking)"""
+    result = await dopamine_items_collection.update_one(
+        {"id": item_id, "user_id": user_id},
+        {
+            "$inc": {"times_used": 1},
+            "$set": {"last_used_at": datetime.now(timezone.utc).isoformat()}
+        }
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    item = await dopamine_items_collection.find_one({"id": item_id}, {"_id": 0})
+    return {"item": item}
+
+
+@api_router.delete("/tools/dopamine/{item_id}")
+async def delete_dopamine_item(
+    item_id: str,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Delete a dopamine menu item"""
+    result = await dopamine_items_collection.delete_one({"id": item_id, "user_id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return {"message": "Item deleted"}
+
+
+@api_router.get("/tools/dopamine/random")
+async def get_random_dopamine_item(
+    category: Optional[str] = None,
+    energy_level: Optional[str] = None,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get a random dopamine item suggestion"""
+    query = {"user_id": user_id}
+    if category:
+        query["category"] = category
+    if energy_level and energy_level != "any":
+        query["$or"] = [{"energy_level": energy_level}, {"energy_level": "any"}]
+    
+    pipeline = [
+        {"$match": query},
+        {"$sample": {"size": 1}},
+        {"$project": {"_id": 0}}
+    ]
+    
+    items = await dopamine_items_collection.aggregate(pipeline).to_list(1)
+    
+    if not items:
+        return {"item": None, "message": "No items found"}
+    
+    return {"item": items[0]}
+
+
+# ----- Phase 2: Time Blindness Guard -----
+
+@api_router.get("/tools/time-blindness/stats")
+async def get_time_blindness_stats(
+    days: int = 30,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get time estimation accuracy stats"""
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    
+    # Get completed tasks with both estimated and actual time
+    tasks = await tasks_collection.find({
+        "user_id": user_id,
+        "status": "completed",
+        "estimated_total_minutes": {"$exists": True, "$ne": None},
+        "created_at": {"$gte": since.isoformat()}
+    }, {"_id": 0}).to_list(100)
+    
+    # Get completed pomodoro sessions
+    sessions = await pomodoro_sessions_collection.find({
+        "user_id": user_id,
+        "status": "completed",
+        "created_at": {"$gte": since.isoformat()}
+    }, {"_id": 0}).to_list(500)
+    
+    # Calculate stats
+    task_estimates = []
+    for task in tasks:
+        estimated = task.get('estimated_total_minutes') or 0
+        # Calculate actual time from chunks or session data
+        actual = task.get('actual_total_minutes') or estimated  # Default to estimate if no actual
+        if estimated and estimated > 0 and actual and actual > 0:
+            task_estimates.append({
+                'title': task.get('title'),
+                'estimated': estimated,
+                'actual': actual,
+                'accuracy': round((min(estimated, actual) / max(estimated, actual)) * 100, 1)
+            })
+    
+    # Overall accuracy
+    avg_accuracy = mean([t['accuracy'] for t in task_estimates]) if task_estimates else 0
+    
+    # Pomodoro stats
+    total_pomodoro_time = sum(s.get('actual_duration_minutes', s.get('planned_duration_minutes', 25)) for s in sessions)
+    
+    return {
+        "days_analyzed": days,
+        "tasks_completed": len(tasks),
+        "task_estimates": task_estimates[-10:],  # Last 10 tasks
+        "average_accuracy": round(avg_accuracy, 1),
+        "total_focus_time_minutes": total_pomodoro_time,
+        "pomodoro_sessions": len(sessions),
+        "estimation_trend": "improving" if avg_accuracy > 70 else "needs_work"
+    }
+
+
+# ----- Phase 2: Energy-Aware Scheduling -----
+
+@api_router.get("/tools/energy/patterns")
+async def get_energy_patterns(
+    days: int = 30,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Analyze energy patterns from mood logs and pomodoro sessions"""
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    
+    # Get mood logs
+    mood_logs = await mood_logs_collection.find({
+        "user_id": user_id,
+        "timestamp": {"$gte": since.isoformat()}
+    }, {"_id": 0}).to_list(500)
+    
+    # Get successful pomodoro sessions
+    sessions = await pomodoro_sessions_collection.find({
+        "user_id": user_id,
+        "status": "completed",
+        "focus_rating": {"$gte": 7},
+        "created_at": {"$gte": since.isoformat()}
+    }, {"_id": 0}).to_list(500)
+    
+    # Analyze by hour of day
+    hour_energy = {}
+    for log in mood_logs:
+        try:
+            ts = datetime.fromisoformat(log['timestamp'].replace('Z', '+00:00'))
+            hour = ts.hour
+            energy = log.get('energy', 5)
+            mood = log.get('mood', 5)
+            if hour not in hour_energy:
+                hour_energy[hour] = {'energy': [], 'mood': [], 'focus_sessions': 0}
+            hour_energy[hour]['energy'].append(energy)
+            hour_energy[hour]['mood'].append(mood)
+        except Exception:
+            continue
+    
+    # Count successful focus sessions by hour
+    for session in sessions:
+        try:
+            ts = datetime.fromisoformat(session['started_at'].replace('Z', '+00:00'))
+            hour = ts.hour
+            if hour in hour_energy:
+                hour_energy[hour]['focus_sessions'] += 1
+        except Exception:
+            continue
+    
+    # Calculate peak hours
+    hour_scores = []
+    for hour, data in hour_energy.items():
+        avg_energy = mean(data['energy']) if data['energy'] else 0
+        avg_mood = mean(data['mood']) if data['mood'] else 0
+        focus_count = data['focus_sessions']
+        # Composite score: energy (40%) + mood (30%) + focus sessions (30%)
+        score = avg_energy * 0.4 + avg_mood * 0.3 + min(focus_count * 2, 10) * 0.3
+        hour_scores.append({
+            'hour': hour,
+            'avg_energy': round(avg_energy, 1),
+            'avg_mood': round(avg_mood, 1),
+            'focus_sessions': focus_count,
+            'productivity_score': round(score, 1)
+        })
+    
+    hour_scores.sort(key=lambda x: x['productivity_score'], reverse=True)
+    
+    # Identify peak windows
+    peak_hours = [h for h in hour_scores if h['productivity_score'] >= 6][:3]
+    low_hours = [h for h in sorted(hour_scores, key=lambda x: x['productivity_score'])][:3]
+    
+    # Time of day recommendations
+    def get_time_period(hour):
+        if 5 <= hour < 12:
+            return "morning"
+        elif 12 <= hour < 17:
+            return "afternoon"
+        elif 17 <= hour < 21:
+            return "evening"
+        else:
+            return "night"
+    
+    peak_periods = list(set(get_time_period(h['hour']) for h in peak_hours)) if peak_hours else ["morning"]
+    
+    return {
+        "days_analyzed": days,
+        "hourly_patterns": sorted(hour_scores, key=lambda x: x['hour']),
+        "peak_hours": peak_hours,
+        "low_energy_hours": low_hours,
+        "peak_periods": peak_periods,
+        "recommendation": f"Your peak productivity is during the {', '.join(peak_periods)}. Schedule demanding tasks then!"
+    }
+
+
+# ----- Phase 2: Rewards & Streaks -----
+
+@api_router.get("/tools/rewards/stats")
+async def get_reward_stats(
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get gamification stats: streaks, badges, achievements"""
+    today = datetime.now(timezone.utc).date()
+    
+    # Get all tasks and sessions
+    all_tasks = await tasks_collection.find(
+        {"user_id": user_id, "status": "completed"},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    all_sessions = await pomodoro_sessions_collection.find(
+        {"user_id": user_id, "status": "completed"},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    # Calculate current streak (consecutive days with activity)
+    activity_dates = set()
+    for task in all_tasks:
+        try:
+            completed_at = task.get('completed_at')
+            if completed_at:
+                date = datetime.fromisoformat(completed_at.replace('Z', '+00:00')).date()
+                activity_dates.add(date)
+        except Exception:
+            continue
+    
+    for session in all_sessions:
+        try:
+            ended_at = session.get('ended_at')
+            if ended_at:
+                date = datetime.fromisoformat(ended_at.replace('Z', '+00:00')).date()
+                activity_dates.add(date)
+        except Exception:
+            continue
+    
+    # Calculate streak
+    current_streak = 0
+    check_date = today
+    while check_date in activity_dates or (check_date == today and len(activity_dates) > 0):
+        if check_date in activity_dates:
+            current_streak += 1
+        check_date -= timedelta(days=1)
+        if current_streak > 0 and check_date not in activity_dates:
+            break
+    
+    # Total stats
+    total_tasks_completed = len(all_tasks)
+    total_chunks_completed = sum(len([c for c in t.get('chunks', []) if c.get('is_completed')]) for t in all_tasks)
+    total_focus_minutes = sum(s.get('actual_duration_minutes', s.get('planned_duration_minutes', 25)) for s in all_sessions)
+    total_sessions = len(all_sessions)
+    
+    # Badges/achievements
+    badges = []
+    
+    if total_tasks_completed >= 1:
+        badges.append({"id": "first_task", "name": "First Step", "description": "Completed your first task", "icon": "rocket"})
+    if total_tasks_completed >= 10:
+        badges.append({"id": "task_master_10", "name": "Task Master", "description": "Completed 10 tasks", "icon": "trophy"})
+    if total_tasks_completed >= 50:
+        badges.append({"id": "task_master_50", "name": "Task Champion", "description": "Completed 50 tasks", "icon": "crown"})
+    
+    if total_sessions >= 10:
+        badges.append({"id": "focus_warrior", "name": "Focus Warrior", "description": "Completed 10 focus sessions", "icon": "flame"})
+    if total_sessions >= 50:
+        badges.append({"id": "focus_master", "name": "Focus Master", "description": "Completed 50 focus sessions", "icon": "zap"})
+    
+    if current_streak >= 3:
+        badges.append({"id": "streak_3", "name": "On Fire", "description": "3-day streak", "icon": "fire"})
+    if current_streak >= 7:
+        badges.append({"id": "streak_7", "name": "Weekly Warrior", "description": "7-day streak", "icon": "star"})
+    if current_streak >= 30:
+        badges.append({"id": "streak_30", "name": "Unstoppable", "description": "30-day streak", "icon": "medal"})
+    
+    if total_focus_minutes >= 60:
+        badges.append({"id": "hour_focus", "name": "Hour of Power", "description": "1 hour total focus time", "icon": "clock"})
+    if total_focus_minutes >= 600:
+        badges.append({"id": "ten_hour_focus", "name": "Focus Legend", "description": "10 hours total focus time", "icon": "award"})
+    
+    # Weekly progress (last 7 days)
+    week_ago = today - timedelta(days=7)
+    weekly_tasks = len([t for t in all_tasks if t.get('completed_at') and datetime.fromisoformat(t['completed_at'].replace('Z', '+00:00')).date() > week_ago])
+    weekly_sessions = len([s for s in all_sessions if s.get('ended_at') and datetime.fromisoformat(s['ended_at'].replace('Z', '+00:00')).date() > week_ago])
+    
+    return {
+        "current_streak": current_streak,
+        "total_tasks_completed": total_tasks_completed,
+        "total_chunks_completed": total_chunks_completed,
+        "total_focus_minutes": total_focus_minutes,
+        "total_sessions": total_sessions,
+        "badges": badges,
+        "weekly_tasks": weekly_tasks,
+        "weekly_sessions": weekly_sessions,
+        "level": 1 + (total_tasks_completed // 5) + (total_sessions // 10),
+        "xp": total_tasks_completed * 10 + total_sessions * 5 + total_chunks_completed * 2
+    }
 
 
 # Health check route

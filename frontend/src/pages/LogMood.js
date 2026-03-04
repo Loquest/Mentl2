@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
+import { useTheme } from '../context/ThemeContext';
 import ActivitySuggestions from '../components/ActivitySuggestions';
 import api from '../utils/api';
 import { Smile, Meh, Frown, Check } from 'lucide-react';
@@ -79,6 +80,7 @@ const SYMPTOMS_OCD = [
 
 const LogMood = () => {
   const navigate = useNavigate();
+  const { isDark } = useTheme();
   const today = new Date().toISOString().split('T')[0];
   
   const [date, setDate] = useState(today);
@@ -185,26 +187,26 @@ const LogMood = () => {
     <Layout>
       <div className="px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto" data-testid="log-mood-page">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Log Your Mood</h1>
-          <p className="mt-2 text-gray-600">Take a moment to check in with yourself</p>
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Log Your Mood</h1>
+          <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Take a moment to check in with yourself</p>
         </div>
 
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6" data-testid="success-message">
+          <div className={`px-4 py-3 rounded-lg mb-6 ${isDark ? 'bg-green-900/30 border border-green-700 text-green-400' : 'bg-green-50 border border-green-200 text-green-700'}`} data-testid="success-message">
             ✓ Mood logged successfully! Check out your personalized activity suggestions below.
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6" data-testid="error-message">
+          <div className={`px-4 py-3 rounded-lg mb-6 ${isDark ? 'bg-red-900/30 border border-red-700 text-red-400' : 'bg-red-50 border border-red-200 text-red-700'}`} data-testid="error-message">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-6 md:p-8 space-y-8">
+        <form onSubmit={handleSubmit} className={`rounded-xl shadow-lg p-6 md:p-8 space-y-8 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
           {/* Date */}
           <div>
-            <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="date" className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
               Date
             </label>
             <input
@@ -213,31 +215,31 @@ const LogMood = () => {
               value={date}
               onChange={(e) => setDate(e.target.value)}
               max={today}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
               data-testid="date-input"
             />
           </div>
 
           {/* Mood Rating */}
           <div data-testid="mood-rating-section">
-            <label className="block text-sm font-medium text-gray-700 mb-4">
+            <label className={`block text-sm font-medium mb-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
               How are you feeling? (1-10)
             </label>
             <div className="flex flex-col items-center space-y-4">
               <div className={`bg-gradient-to-br ${getMoodColor()} p-6 rounded-full`}>
                 {getMoodEmoji()}
               </div>
-              <div className="text-4xl font-bold text-gray-900" data-testid="mood-rating-display">{moodRating}</div>
+              <div className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`} data-testid="mood-rating-display">{moodRating}</div>
               <input
                 type="range"
                 min="1"
                 max="10"
                 value={moodRating}
                 onChange={(e) => setMoodRating(parseInt(e.target.value))}
-                className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                className={`w-full h-3 rounded-lg appearance-none cursor-pointer ${isDark ? 'bg-gray-600' : 'bg-gray-200'}`}
                 data-testid="mood-rating-slider"
               />
-              <div className="flex justify-between w-full text-sm text-gray-500">
+              <div className={`flex justify-between w-full text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                 <span>1 (Very Low)</span>
                 <span>10 (Excellent)</span>
               </div>
@@ -246,7 +248,7 @@ const LogMood = () => {
 
           {/* Mood Tag */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
+            <label className={`block text-sm font-medium mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
               Choose a mood tag (optional)
             </label>
             <div className="flex flex-wrap gap-2">
@@ -258,7 +260,7 @@ const LogMood = () => {
                   className={`px-4 py-2 rounded-full text-sm font-medium transition ${
                     moodTag === tag
                       ? 'bg-purple-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                   data-testid={`mood-tag-${tag.toLowerCase()}`}
                 >
@@ -271,7 +273,7 @@ const LogMood = () => {
           {/* Symptoms */}
           {getAvailableSymptoms().length > 0 && (
             <div data-testid="symptoms-section">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className={`block text-sm font-medium mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                 Any symptoms today? (optional)
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -282,14 +284,14 @@ const LogMood = () => {
                     onClick={() => toggleSymptom(symptom.id)}
                     className={`flex items-center justify-between p-3 border-2 rounded-lg text-left transition ${
                       symptoms[symptom.id]
-                        ? 'border-purple-500 bg-purple-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? isDark ? 'border-purple-500 bg-purple-900/30' : 'border-purple-500 bg-purple-50'
+                        : isDark ? 'border-gray-600 hover:border-gray-500' : 'border-gray-200 hover:border-gray-300'
                     }`}
                     data-testid={`symptom-${symptom.id}`}
                   >
-                    <span className="text-sm font-medium text-gray-700">{symptom.label}</span>
+                    <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{symptom.label}</span>
                     {symptoms[symptom.id] && (
-                      <Check className="h-5 w-5 text-purple-600" />
+                      <Check className="h-5 w-5 text-purple-500" />
                     )}
                   </button>
                 ))}
@@ -299,7 +301,7 @@ const LogMood = () => {
 
           {/* Notes */}
           <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="notes" className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
               Notes (optional)
             </label>
             <textarea
@@ -307,7 +309,7 @@ const LogMood = () => {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'}`}
               placeholder="What's on your mind? Any triggers or positive moments?"
               data-testid="notes-input"
             />
@@ -316,7 +318,7 @@ const LogMood = () => {
           {/* Additional Info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="sleep" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="sleep" className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                 Sleep Hours (optional)
               </label>
               <input
@@ -327,7 +329,7 @@ const LogMood = () => {
                 max="24"
                 value={sleepHours}
                 onChange={(e) => setSleepHours(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'}`}
                 placeholder="e.g., 7.5"
                 data-testid="sleep-input"
               />
@@ -342,7 +344,7 @@ const LogMood = () => {
                   className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                   data-testid="medication-checkbox"
                 />
-                <span className="text-sm font-medium text-gray-700">Took medication today</span>
+                <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Took medication today</span>
               </label>
             </div>
           </div>
@@ -365,7 +367,7 @@ const LogMood = () => {
             <div className="mt-6 text-center">
               <button
                 onClick={() => navigate('/dashboard')}
-                className="px-8 py-3 bg-white border-2 border-purple-500 text-purple-600 rounded-lg font-semibold hover:bg-purple-50 transition"
+                className={`px-8 py-3 border-2 border-purple-500 rounded-lg font-semibold transition ${isDark ? 'bg-gray-800 text-purple-400 hover:bg-gray-700' : 'bg-white text-purple-600 hover:bg-purple-50'}`}
               >
                 Back to Dashboard
               </button>

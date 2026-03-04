@@ -96,12 +96,40 @@ Build a comprehensive Mental Health Companion App for individuals with Bipolar, 
 - [x] Sidebar fully styled for dark mode
 - [x] Smooth theme transitions
 
+#### Onboarding Tutorial (January 2025)
+- [x] 4-slide carousel tutorial after registration
+- [x] Feature highlights: Mood Tracking, AI Chat, Insights, Caregivers
+- [x] Skip button and keyboard navigation (arrows, Esc)
+- [x] Dark mode support
+- [x] "View Tutorial" option in Settings > Help tab
+- [x] localStorage persistence (mentl_tutorial_completed)
+
+#### ADHD Tools - Phase 1 (January 2025)
+- [x] Task Chunking Engine - AI breaks large tasks into small, actionable steps
+- [x] Adaptive Pomodoro System - Focus timer with stats tracking
+- [x] Dopamine Menu - Quick reward activities with categories and favorites
+- [x] Tools page at /tools (condition-gated for ADHD users)
+- [x] Tools nav item in sidebar and mobile bottom nav
+- [x] 12 pre-seeded dopamine activities
+- [x] Full dark mode support
+- [x] Focus Session Integration - Task Chunker + Pomodoro working together
+- [x] Sound notifications (Web Audio API) and vibration alerts
+
+#### ADHD Tools - Phase 2 (February 2025)
+- [x] Time Blindness Guard - Time estimation accuracy tracking
+- [x] Energy-Aware Scheduling - Peak productivity windows based on mood data
+- [x] Reward-Based Completion Feedback - Streaks, badges, XP, levels gamification
+- [x] All 6 tabs in Tools page (Task Chunker, Focus Timer, Dopamine Menu, Time Guard, Energy, Rewards)
+
 ### 🔄 In Progress
 - None
 
+### ✅ Recently Completed (February 2025)
+- [x] Sound notifications/vibration for Focus Session phase completion - VERIFIED
+- [x] ADHD Tools Phase 2: Time Blindness Guard, Energy Scheduling, Rewards Center - VERIFIED
+
 ### 📋 Backlog (P1 - High Priority)
-- [ ] Full dark mode support for all content pages (Dashboard, Insights, etc.)
-- [ ] Web Push notification service worker implementation
+- [ ] ADHD Tools Phase 3: Task Initiation Prompting, Forgetfulness Recovery, Distraction Shield, Body Doubling (AI companion)
 
 ### 📋 Backlog (P2 - Medium Priority)
 - [ ] Weekly mood summary email reports

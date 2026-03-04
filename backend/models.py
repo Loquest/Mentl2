@@ -266,3 +266,146 @@ class NotificationPreferencesUpdate(BaseModel):
     push_crisis_alerts: Optional[bool] = None
     push_mood_reminders: Optional[bool] = None
     push_caregiver_updates: Optional[bool] = None
+
+
+# ==================== ADHD Tools Models ====================
+
+# Task Chunking Engine
+class TaskChunk(BaseModel):
+    """A single step/chunk of a larger task"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    description: Optional[str] = None
+    estimated_minutes: int = 5
+    is_completed: bool = False
+    completed_at: Optional[datetime] = None
+    order: int = 0
+
+
+class Task(BaseModel):
+    """A task that can be broken into chunks"""
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    title: str
+    description: Optional[str] = None
+    chunks: List[TaskChunk] = []
+    priority: str = "medium"  # "low", "medium", "high", "urgent"
+    status: str = "pending"  # "pending", "in_progress", "completed", "abandoned"
+    due_date: Optional[datetime] = None
+    estimated_total_minutes: Optional[int] = None
+    actual_total_minutes: Optional[int] = None
+    tags: List[str] = []
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    completed_at: Optional[datetime] = None
+
+
+class TaskCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    priority: str = "medium"
+    due_date: Optional[datetime] = None
+    tags: List[str] = []
+    auto_chunk: bool = True  # Whether to use AI to break into chunks
+
+
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    priority: Optional[str] = None
+    status: Optional[str] = None
+    due_date: Optional[datetime] = None
+    tags: Optional[List[str]] = None
+
+
+class ChunkUpdate(BaseModel):
+    is_completed: bool
+
+
+# Adaptive Pomodoro System
+class PomodoroSession(BaseModel):
+    """A single pomodoro focus session"""
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    task_id: Optional[str] = None  # Optional link to a task
+    task_title: Optional[str] = None
+    planned_duration_minutes: int = 25
+    actual_duration_minutes: Optional[int] = None
+    break_duration_minutes: int = 5
+    status: str = "planned"  # "planned", "active", "completed", "abandoned", "paused"
+    focus_rating: Optional[int] = None  # 1-10 self-reported focus quality
+    interruptions: int = 0
+    notes: Optional[str] = None
+    started_at: Optional[datetime] = None
+    ended_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class PomodoroSessionCreate(BaseModel):
+    task_id: Optional[str] = None
+    task_title: Optional[str] = None
+    planned_duration_minutes: int = 25
+    break_duration_minutes: int = 5
+
+
+class PomodoroSessionUpdate(BaseModel):
+    status: Optional[str] = None
+    actual_duration_minutes: Optional[int] = None
+    focus_rating: Optional[int] = None
+    interruptions: Optional[int] = None
+    notes: Optional[str] = None
+
+
+class PomodoroSettings(BaseModel):
+    """User's personalized pomodoro settings"""
+    model_config = ConfigDict(extra="ignore")
+    
+    user_id: str
+    default_focus_duration: int = 25  # minutes
+    default_short_break: int = 5
+    default_long_break: int = 15
+    sessions_before_long_break: int = 4
+    auto_start_breaks: bool = True
+    auto_start_focus: bool = False
+    sound_enabled: bool = True
+    sound_type: str = "gentle"  # "gentle", "bell", "nature", "none"
+
+
+# Dopamine Menu
+class DopamineItem(BaseModel):
+    """A quick dopamine-boosting activity"""
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    title: str
+    description: Optional[str] = None
+    category: str = "micro"  # "micro" (1-2min), "short" (5-10min), "medium" (15-30min), "reward" (30min+)
+    energy_level: str = "any"  # "low", "medium", "high", "any"
+    tags: List[str] = []
+    times_used: int = 0
+    last_used_at: Optional[datetime] = None
+    is_favorite: bool = False
+    is_custom: bool = True  # False for default items
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class DopamineItemCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    category: str = "micro"
+    energy_level: str = "any"
+    tags: List[str] = []
+
+
+class DopamineItemUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+    energy_level: Optional[str] = None
+    tags: Optional[List[str]] = None
+    is_favorite: Optional[bool] = None

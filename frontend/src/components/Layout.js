@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Heart, Home, PenLine, BarChart3, MessageCircle, BookOpen, LogOut, User, Users, Utensils, Moon, Sun } from 'lucide-react';
+import { Heart, Home, PenLine, BarChart3, MessageCircle, BookOpen, LogOut, User, Users, Utensils, Moon, Sun, Wrench } from 'lucide-react';
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -15,6 +15,9 @@ const Layout = ({ children }) => {
     navigate('/login');
   };
 
+  // Check if user has any condition that has tools
+  const hasConditionWithTools = user?.conditions?.some(c => ['adhd'].includes(c));
+
   const navigation = [
     { name: 'Dashboard', path: '/dashboard', icon: Home },
     { name: 'Log Mood', path: '/log-mood', icon: PenLine },
@@ -22,6 +25,8 @@ const Layout = ({ children }) => {
     { name: 'Nutrition', path: '/nutrition', icon: Utensils },
     { name: 'AI Chat', path: '/chat', icon: MessageCircle },
     { name: 'Library', path: '/library', icon: BookOpen },
+    // Conditionally add Tools for users with ADHD
+    ...(hasConditionWithTools ? [{ name: 'Tools', path: '/tools', icon: Wrench }] : []),
   ];
 
   return (
@@ -182,9 +187,13 @@ const Layout = ({ children }) => {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-10">
-        <div className="flex justify-around py-2">
-          {navigation.slice(0, 5).map((item) => {
+      <div className={`lg:hidden fixed bottom-0 left-0 right-0 border-t z-50 transition-colors duration-200 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className="flex justify-around py-2 pb-safe">
+          {/* Show first 4 items + Tools if available, otherwise first 5 */}
+          {(hasConditionWithTools 
+            ? [navigation[0], navigation[1], navigation[2], navigation[4], navigation.find(n => n.name === 'Tools')]
+            : navigation.slice(0, 5)
+          ).filter(Boolean).map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
             return (
@@ -192,10 +201,10 @@ const Layout = ({ children }) => {
                 key={item.name}
                 to={item.path}
                 className={`flex flex-col items-center px-3 py-2 text-xs font-medium rounded-lg transition ${
-                  isActive ? 'text-purple-600' : 'text-gray-600'
+                  isActive ? 'text-purple-600' : isDark ? 'text-gray-400' : 'text-gray-600'
                 }`}
               >
-                <Icon className={`h-5 w-5 mb-1 ${isActive ? 'text-purple-600' : 'text-gray-500'}`} />
+                <Icon className={`h-5 w-5 mb-1 ${isActive ? 'text-purple-600' : isDark ? 'text-gray-500' : 'text-gray-500'}`} />
                 <span>{item.name}</span>
               </Link>
             );

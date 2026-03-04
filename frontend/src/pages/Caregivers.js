@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import Layout from '../components/Layout';
 import api from '../utils/api';
 import { 
@@ -10,6 +11,7 @@ import {
 
 const Caregivers = () => {
   const { user } = useAuth();
+  const { isDark } = useTheme();
   const [activeTab, setActiveTab] = useState('my-caregivers');
   
   // My Caregivers (as patient)
@@ -178,9 +180,9 @@ const Caregivers = () => {
   };
 
   const getMoodColor = (rating) => {
-    if (rating >= 7) return 'bg-green-100 text-green-800';
-    if (rating >= 4) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-red-100 text-red-800';
+    if (rating >= 7) return isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800';
+    if (rating >= 4) return isDark ? 'bg-yellow-900/30 text-yellow-400' : 'bg-yellow-100 text-yellow-800';
+    return isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800';
   };
 
   if (loading) {
@@ -189,7 +191,7 @@ const Caregivers = () => {
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading caregiver data...</p>
+            <p className={`mt-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Loading caregiver data...</p>
           </div>
         </div>
       </Layout>
@@ -201,13 +203,13 @@ const Caregivers = () => {
       <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto" data-testid="caregivers-page">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Caregiver Network</h1>
-          <p className="mt-2 text-gray-600">Connect with trusted caregivers and family members</p>
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Caregiver Network</h1>
+          <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Connect with trusted caregivers and family members</p>
         </div>
 
         {/* Success/Error Messages */}
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 flex items-center" data-testid="success-message">
+          <div className={`px-4 py-3 rounded-lg mb-6 flex items-center ${isDark ? 'bg-green-900/30 border border-green-700 text-green-400' : 'bg-green-50 border border-green-200 text-green-700'}`} data-testid="success-message">
             <Check className="h-5 w-5 mr-2" />
             {success}
             <button onClick={() => setSuccess('')} className="ml-auto">
@@ -217,7 +219,7 @@ const Caregivers = () => {
         )}
         
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center" data-testid="error-message">
+          <div className={`px-4 py-3 rounded-lg mb-6 flex items-center ${isDark ? 'bg-red-900/30 border border-red-700 text-red-400' : 'bg-red-50 border border-red-200 text-red-700'}`} data-testid="error-message">
             <AlertCircle className="h-5 w-5 mr-2" />
             {error}
             <button onClick={() => setError('')} className="ml-auto">
@@ -227,13 +229,13 @@ const Caregivers = () => {
         )}
 
         {/* Tab Navigation */}
-        <div className="flex space-x-2 mb-6 border-b border-gray-200 overflow-x-auto">
+        <div className={`flex space-x-2 mb-6 border-b overflow-x-auto ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
           <button
             onClick={() => { setActiveTab('my-caregivers'); setSelectedPatient(null); }}
             className={`px-6 py-3 font-semibold whitespace-nowrap transition ${
               activeTab === 'my-caregivers'
-                ? 'border-b-2 border-purple-500 text-purple-600'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'border-b-2 border-purple-500 text-purple-500'
+                : isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'
             }`}
             data-testid="my-caregivers-tab"
           >
@@ -244,8 +246,8 @@ const Caregivers = () => {
             onClick={() => { setActiveTab('my-patients'); setSelectedPatient(null); }}
             className={`px-6 py-3 font-semibold whitespace-nowrap transition ${
               activeTab === 'my-patients'
-                ? 'border-b-2 border-purple-500 text-purple-600'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'border-b-2 border-purple-500 text-purple-500'
+                : isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'
             }`}
             data-testid="my-patients-tab"
           >
@@ -276,32 +278,32 @@ const Caregivers = () => {
 
             {/* Invite Form */}
             {showInviteForm && (
-              <div className="bg-white rounded-xl shadow-md p-6 border-2 border-purple-200" data-testid="invite-form">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Invite a Caregiver</h3>
+              <div className={`rounded-xl shadow-md p-6 border-2 ${isDark ? 'bg-gray-800 border-purple-700' : 'bg-white border-purple-200'}`} data-testid="invite-form">
+                <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Invite a Caregiver</h3>
                 <form onSubmit={handleInvite} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                       Caregiver&apos;s Email Address
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <Mail className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
                       <input
                         type="email"
                         value={inviteEmail}
                         onChange={(e) => setInviteEmail(e.target.value)}
                         required
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'}`}
                         placeholder="caregiver@example.com"
                         data-testid="invite-email-input"
                       />
                     </div>
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className={`mt-1 text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                       They will receive an invitation to view your mood data
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <label className={`block text-sm font-medium mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                       Permissions
                     </label>
                     <div className="space-y-2">
@@ -314,8 +316,8 @@ const Caregivers = () => {
                           key={perm.key}
                           className={`flex items-center p-3 border rounded-lg cursor-pointer transition ${
                             invitePermissions[perm.key]
-                              ? 'border-purple-300 bg-purple-50'
-                              : 'border-gray-200 hover:border-purple-200'
+                              ? isDark ? 'border-purple-500 bg-purple-900/20' : 'border-purple-300 bg-purple-50'
+                              : isDark ? 'border-gray-700 hover:border-gray-600' : 'border-gray-200 hover:border-purple-200'
                           }`}
                         >
                           <input
@@ -328,16 +330,16 @@ const Caregivers = () => {
                             className="sr-only"
                           />
                           <perm.icon className={`h-5 w-5 mr-3 ${
-                            invitePermissions[perm.key] ? 'text-purple-600' : 'text-gray-400'
+                            invitePermissions[perm.key] ? 'text-purple-600' : isDark ? 'text-gray-500' : 'text-gray-400'
                           }`} />
                           <div className="flex-1">
-                            <p className="font-medium text-gray-900">{perm.label}</p>
-                            <p className="text-xs text-gray-500">{perm.desc}</p>
+                            <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{perm.label}</p>
+                            <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{perm.desc}</p>
                           </div>
                           <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
                             invitePermissions[perm.key]
                               ? 'bg-purple-500 border-purple-500'
-                              : 'border-gray-300'
+                              : isDark ? 'border-gray-600' : 'border-gray-300'
                           }`}>
                             {invitePermissions[perm.key] && <Check className="h-3 w-3 text-white" />}
                           </div>
@@ -350,7 +352,7 @@ const Caregivers = () => {
                     <button
                       type="button"
                       onClick={() => setShowInviteForm(false)}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                      className={`flex-1 px-4 py-2 border rounded-lg transition ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
                     >
                       Cancel
                     </button>
@@ -369,22 +371,22 @@ const Caregivers = () => {
 
             {/* Pending Invitations (Sent) */}
             {sentInvitations.filter(inv => inv.status === 'pending').length > 0 && (
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                <h3 className={`text-lg font-semibold mb-4 flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <Clock className="h-5 w-5 mr-2 text-yellow-500" />
                   Pending Invitations
                 </h3>
                 <div className="space-y-3">
                   {sentInvitations.filter(inv => inv.status === 'pending').map((inv) => (
-                    <div key={inv.id} className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div key={inv.id} className={`flex items-center justify-between p-4 rounded-lg border ${isDark ? 'bg-yellow-900/20 border-yellow-800' : 'bg-yellow-50 border-yellow-200'}`}>
                       <div>
-                        <p className="font-medium text-gray-900">{inv.caregiver_email}</p>
-                        <p className="text-sm text-gray-500">Invitation sent • Waiting for response</p>
+                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{inv.caregiver_email}</p>
+                        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Invitation sent • Waiting for response</p>
                       </div>
                       <button
                         onClick={() => handleCancelInvitation(inv.id)}
                         disabled={actionLoading}
-                        className="text-red-600 hover:text-red-700 p-2"
+                        className={`p-2 ${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-700'}`}
                         title="Cancel invitation"
                         data-testid={`cancel-invite-${inv.id}`}
                       >
@@ -397,24 +399,24 @@ const Caregivers = () => {
             )}
 
             {/* Current Caregivers */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+              <h3 className={`text-lg font-semibold mb-4 flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 <Shield className="h-5 w-5 mr-2 text-purple-500" />
                 My Caregivers
               </h3>
               
               {caregivers.length === 0 ? (
                 <div className="text-center py-12">
-                  <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-2">No caregivers yet</p>
-                  <p className="text-sm text-gray-500">
+                  <Users className={`h-16 w-16 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />
+                  <p className={`mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>No caregivers yet</p>
+                  <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                     Invite a trusted family member or friend to help support your mental health journey
                   </p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {caregivers.map((caregiver) => (
-                    <div key={caregiver.id} className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-lg" data-testid={`caregiver-${caregiver.id}`}>
+                    <div key={caregiver.id} className={`flex items-center justify-between p-4 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`} data-testid={`caregiver-${caregiver.id}`}>
                       <div className="flex items-center">
                         <div className="bg-gradient-to-br from-purple-500 to-pink-500 w-12 h-12 rounded-full flex items-center justify-center mr-4">
                           <span className="text-white font-bold text-lg">
@@ -422,17 +424,17 @@ const Caregivers = () => {
                           </span>
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">{caregiver.caregiver_name}</p>
-                          <p className="text-sm text-gray-500">{caregiver.caregiver_email}</p>
+                          <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{caregiver.caregiver_name}</p>
+                          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{caregiver.caregiver_email}</p>
                           <div className="flex gap-2 mt-1">
                             {caregiver.permissions?.view_mood_logs && (
-                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Logs</span>
+                              <span className={`text-xs px-2 py-0.5 rounded ${isDark ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>Logs</span>
                             )}
                             {caregiver.permissions?.view_analytics && (
-                              <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Analytics</span>
+                              <span className={`text-xs px-2 py-0.5 rounded ${isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-100 text-green-700'}`}>Analytics</span>
                             )}
                             {caregiver.permissions?.receive_alerts && (
-                              <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">Alerts</span>
+                              <span className={`text-xs px-2 py-0.5 rounded ${isDark ? 'bg-yellow-900/50 text-yellow-400' : 'bg-yellow-100 text-yellow-700'}`}>Alerts</span>
                             )}
                           </div>
                         </div>
@@ -440,7 +442,7 @@ const Caregivers = () => {
                       <button
                         onClick={() => handleRemoveCaregiver(caregiver.id)}
                         disabled={actionLoading}
-                        className="text-red-600 hover:text-red-700 p-2"
+                        className={`p-2 ${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-700'}`}
                         title="Remove caregiver"
                         data-testid={`remove-caregiver-${caregiver.id}`}
                       >
@@ -459,19 +461,19 @@ const Caregivers = () => {
           <div className="space-y-6">
             {/* Received Invitations */}
             {receivedInvitations.length > 0 && (
-              <div className="bg-white rounded-xl shadow-md p-6 border-2 border-blue-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <div className={`rounded-xl shadow-md p-6 border-2 ${isDark ? 'bg-gray-800 border-blue-700' : 'bg-white border-blue-200'}`}>
+                <h3 className={`text-lg font-semibold mb-4 flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <Mail className="h-5 w-5 mr-2 text-blue-500" />
                   New Invitations
                 </h3>
                 <div className="space-y-3">
                   {receivedInvitations.map((inv) => (
-                    <div key={inv.id} className="p-4 bg-blue-50 border border-blue-200 rounded-lg" data-testid={`invitation-${inv.id}`}>
+                    <div key={inv.id} className={`p-4 rounded-lg border ${isDark ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-200'}`} data-testid={`invitation-${inv.id}`}>
                       <div className="flex items-start justify-between">
                         <div>
-                          <p className="font-medium text-gray-900">{inv.patient_name}</p>
-                          <p className="text-sm text-gray-500">{inv.patient_email}</p>
-                          <p className="text-sm text-blue-600 mt-1">Wants you to be their caregiver</p>
+                          <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{inv.patient_name}</p>
+                          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{inv.patient_email}</p>
+                          <p className={`text-sm mt-1 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>Wants you to be their caregiver</p>
                         </div>
                         <div className="flex gap-2">
                           <button
@@ -486,7 +488,7 @@ const Caregivers = () => {
                           <button
                             onClick={() => handleRejectInvitation(inv.id)}
                             disabled={actionLoading}
-                            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-300 transition flex items-center"
+                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                             data-testid={`reject-invite-${inv.id}`}
                           >
                             <X className="h-4 w-4 mr-1" />
@@ -501,17 +503,17 @@ const Caregivers = () => {
             )}
 
             {/* People I Care For */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+              <h3 className={`text-lg font-semibold mb-4 flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 <Heart className="h-5 w-5 mr-2 text-pink-500" />
                 People I Care For
               </h3>
               
               {patients.length === 0 ? (
                 <div className="text-center py-12">
-                  <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-2">You&apos;re not caring for anyone yet</p>
-                  <p className="text-sm text-gray-500">
+                  <Heart className={`h-16 w-16 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />
+                  <p className={`mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>You&apos;re not caring for anyone yet</p>
+                  <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                     When someone invites you as their caregiver, you&apos;ll see their invitation here
                   </p>
                 </div>
@@ -521,7 +523,7 @@ const Caregivers = () => {
                     <button
                       key={patient.id}
                       onClick={() => handleViewPatient(patient)}
-                      className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-left hover:border-purple-300 hover:shadow-md transition group"
+                      className={`p-4 border rounded-lg text-left transition group ${isDark ? 'bg-gray-700 border-gray-600 hover:border-purple-500 hover:shadow-md' : 'bg-gray-50 border-gray-200 hover:border-purple-300 hover:shadow-md'}`}
                       data-testid={`patient-card-${patient.id}`}
                     >
                       <div className="flex items-center justify-between">
@@ -532,11 +534,11 @@ const Caregivers = () => {
                             </span>
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">{patient.patient_name}</p>
-                            <p className="text-sm text-gray-500">{patient.patient_email}</p>
+                            <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{patient.patient_name}</p>
+                            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{patient.patient_email}</p>
                           </div>
                         </div>
-                        <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-purple-500 transition" />
+                        <ChevronRight className={`h-5 w-5 transition ${isDark ? 'text-gray-500 group-hover:text-purple-400' : 'text-gray-400 group-hover:text-purple-500'}`} />
                       </div>
                     </button>
                   ))}
@@ -552,7 +554,7 @@ const Caregivers = () => {
             {/* Back Button */}
             <button
               onClick={() => { setSelectedPatient(null); setPatientData(null); }}
-              className="text-purple-600 hover:text-purple-700 font-medium flex items-center"
+              className={`font-medium flex items-center ${isDark ? 'text-purple-400 hover:text-purple-300' : 'text-purple-600 hover:text-purple-700'}`}
               data-testid="back-to-patients"
             >
               <ChevronRight className="h-5 w-5 rotate-180 mr-1" />
@@ -560,7 +562,7 @@ const Caregivers = () => {
             </button>
 
             {/* Patient Header */}
-            <div className="bg-white rounded-xl shadow-md p-6">
+            <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
               <div className="flex items-center">
                 <div className="bg-gradient-to-br from-pink-500 to-red-500 w-16 h-16 rounded-full flex items-center justify-center mr-6">
                   <span className="text-white font-bold text-2xl">
@@ -568,8 +570,8 @@ const Caregivers = () => {
                   </span>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{selectedPatient.patient_name}</h2>
-                  <p className="text-gray-500">{selectedPatient.patient_email}</p>
+                  <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedPatient.patient_name}</h2>
+                  <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>{selectedPatient.patient_email}</p>
                 </div>
               </div>
             </div>
@@ -578,39 +580,43 @@ const Caregivers = () => {
               <>
                 {/* Analytics Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-white rounded-xl shadow-md p-6">
-                    <p className="text-sm text-gray-500 mb-1">Average Mood (30 days)</p>
-                    <p className="text-3xl font-bold text-gray-900">{patientData.analytics.average_mood}/10</p>
+                  <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                    <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Average Mood (30 days)</p>
+                    <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{patientData.analytics.average_mood}/10</p>
                   </div>
-                  <div className="bg-white rounded-xl shadow-md p-6">
-                    <p className="text-sm text-gray-500 mb-1">Mood Trend</p>
+                  <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                    <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Mood Trend</p>
                     <div className="flex items-center">
                       {getTrendIcon(patientData.analytics.mood_trend)}
-                      <span className="text-xl font-bold text-gray-900 ml-2 capitalize">
+                      <span className={`text-xl font-bold ml-2 capitalize ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         {patientData.analytics.mood_trend}
                       </span>
                     </div>
                   </div>
-                  <div className="bg-white rounded-xl shadow-md p-6">
-                    <p className="text-sm text-gray-500 mb-1">Total Logs</p>
-                    <p className="text-3xl font-bold text-gray-900">{patientData.analytics.total_logs}</p>
+                  <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                    <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Total Logs</p>
+                    <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{patientData.analytics.total_logs}</p>
                   </div>
                 </div>
 
                 {/* Concerns */}
                 {patientData.analytics.recent_concerns?.length > 0 && (
-                  <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-red-800 mb-4 flex items-center">
+                  <div className={`rounded-xl p-6 border ${isDark ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-200'}`}>
+                    <h3 className={`text-lg font-semibold mb-4 flex items-center ${isDark ? 'text-red-400' : 'text-red-800'}`}>
                       <AlertCircle className="h-5 w-5 mr-2" />
                       Recent Concerns
                     </h3>
                     <div className="space-y-2">
                       {patientData.analytics.recent_concerns.map((concern, idx) => (
                         <div key={idx} className={`p-3 rounded-lg ${
-                          concern.severity === 'high' ? 'bg-red-100' : 'bg-yellow-100'
+                          concern.severity === 'high' 
+                            ? isDark ? 'bg-red-900/40' : 'bg-red-100'
+                            : isDark ? 'bg-yellow-900/40' : 'bg-yellow-100'
                         }`}>
                           <p className={`font-medium ${
-                            concern.severity === 'high' ? 'text-red-800' : 'text-yellow-800'
+                            concern.severity === 'high' 
+                              ? isDark ? 'text-red-400' : 'text-red-800'
+                              : isDark ? 'text-yellow-400' : 'text-yellow-800'
                           }`}>
                             {concern.message}
                           </p>
@@ -621,30 +627,32 @@ const Caregivers = () => {
                 )}
 
                 {/* Recent Mood Logs */}
-                <div className="bg-white rounded-xl shadow-md p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                  <h3 className={`text-lg font-semibold mb-4 flex items-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     <Calendar className="h-5 w-5 mr-2 text-blue-500" />
                     Recent Mood Logs
                   </h3>
                   
                   {patientData.moodLogs.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No mood logs available</p>
+                    <p className={`text-center py-8 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>No mood logs available</p>
                   ) : (
                     <div className="space-y-2">
                       {patientData.moodLogs.map((log) => (
-                        <div key={log.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div key={log.id} className={`flex items-center justify-between p-3 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
                           <div className="flex items-center">
                             <span className={`px-3 py-1 rounded-full text-sm font-bold ${getMoodColor(log.mood_rating)}`}>
                               {log.mood_rating}/10
                             </span>
-                            <span className="ml-3 text-gray-600">{log.date}</span>
+                            <span className={`ml-3 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{log.date}</span>
                             {log.mood_tag && (
-                              <span className="ml-2 text-sm text-gray-500 capitalize">• {log.mood_tag}</span>
+                              <span className={`ml-2 text-sm capitalize ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>• {log.mood_tag}</span>
                             )}
                           </div>
                           {log.medication_taken !== undefined && (
                             <span className={`text-xs px-2 py-1 rounded ${
-                              log.medication_taken ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                              log.medication_taken 
+                                ? isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-100 text-green-700'
+                                : isDark ? 'bg-gray-600 text-gray-400' : 'bg-gray-100 text-gray-500'
                             }`}>
                               {log.medication_taken ? 'Meds taken' : 'Meds missed'}
                             </span>
@@ -657,11 +665,11 @@ const Caregivers = () => {
 
                 {/* Common Symptoms */}
                 {patientData.analytics.most_common_symptoms?.length > 0 && (
-                  <div className="bg-white rounded-xl shadow-md p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Most Common Symptoms</h3>
+                  <div className={`rounded-xl shadow-md p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                    <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Most Common Symptoms</h3>
                     <div className="flex flex-wrap gap-2">
                       {patientData.analytics.most_common_symptoms.map((symptom, idx) => (
-                        <span key={idx} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
+                        <span key={idx} className={`px-3 py-1 rounded-full text-sm ${isDark ? 'bg-purple-900/50 text-purple-400' : 'bg-purple-100 text-purple-700'}`}>
                           {symptom.symptom.replace(/_/g, ' ')} ({symptom.count})
                         </span>
                       ))}
@@ -674,9 +682,9 @@ const Caregivers = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
               </div>
             ) : (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
-                <AlertCircle className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-                <p className="text-yellow-800">Unable to load patient data. Please try again.</p>
+              <div className={`rounded-xl p-6 text-center border ${isDark ? 'bg-yellow-900/20 border-yellow-800' : 'bg-yellow-50 border-yellow-200'}`}>
+                <AlertCircle className={`h-8 w-8 mx-auto mb-2 ${isDark ? 'text-yellow-400' : 'text-yellow-500'}`} />
+                <p className={isDark ? 'text-yellow-400' : 'text-yellow-800'}>Unable to load patient data. Please try again.</p>
               </div>
             )}
           </div>
